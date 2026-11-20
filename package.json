@@ -1,0 +1,25 @@
+{
+  "name": "calisthenics-ai-coach",
+  "version": "1.0.0",
+  "description": "An AI coach that watches your calisthenics form through the camera and gives you live spoken feedback.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larissangongomilly/calisthenics-ai-coach.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/larissangongomilly/calisthenics-ai-coach/issues"
+  },
+  "homepage": "https://github.com/larissangongomilly/calisthenics-ai-coach#readme",
+  "devDependencies": {
+    "vite": "^8.3.8"
+  }
+}
