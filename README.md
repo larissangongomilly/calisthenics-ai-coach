@@ -1,2 +1,3 @@
 # Calisthenics AI Coach
-AI-Coach, der per Kamera deine Calisthenics-Form live prüft und per Sprache Tipps gibt.
+
+An AI coach that watches your calisthenics form through the camera and gives you live spoken feedback.
