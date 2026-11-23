@@ -5,48 +5,95 @@ import { createTracker } from "./tracker.js";
 import { speak } from "./voice.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
-import { renderSkillPath } from "./path-screen.js";
 import { isLevelUnlocked } from "./path.js";
 import { CAMERA_VIEWS, getSkill } from "./skills.js";
+import { loadName, saveName, cleanName } from "./profile.js";
+import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
-const trainingScreen = document.querySelector("#training-screen");
-const resultsScreen = document.querySelector("#results-screen");
-const pathScreen = document.querySelector("#path-screen");
-const pathButton = document.querySelector("#path-button");
-const resultsPathButton = document.querySelector("#results-path-button");
-const pathBackButton = document.querySelector("#path-back-button");
-const pathLevels = document.querySelector("#path-levels");
-const pathStreak = document.querySelector("#path-streak");
-const startButton = document.querySelector("#start-button");
-const pauseButton = document.querySelector("#pause-button");
-const finishButton = document.querySelector("#finish-button");
-const newSetButton = document.querySelector("#new-set-button");
-const message = document.querySelector("#message");
-const cameraBox = document.querySelector("#camera-box");
-const video = document.querySelector("#camera");
-const canvas = document.querySelector("#overlay");
+const $ = (selector) => document.querySelector(selector);
+
+// Screens
+const screens = {
+  welcome: $("#welcome-screen"),
+  home: $("#home-screen"),
+  skills: $("#skills-screen"),
+  training: $("#training-screen"),
+  results: $("#results-screen"),
+};
+const tabBar = $("#tab-bar");
+const tabs = document.querySelectorAll(".tab");
+
+// Welcome
+const welcomeForm = $("#welcome-form");
+const nameInput = $("#name-input");
+
+// Home
+const helloText = $("#hello-text");
+const streakCount = $("#streak-count");
+const streakText = $("#streak-text");
+const road = $("#road");
+
+// Skills
+const skillSearch = $("#skill-search");
+const levelFilter = $("#level-filter");
+const skillList = $("#skill-list");
+
+// Skill sheet
+const sheet = $("#skill-sheet");
+const sheetParts = {
+  meta: $("#sheet-meta"),
+  title: $("#sheet-title"),
+  status: $("#sheet-status"),
+  warning: $("#sheet-warning"),
+  camera: $("#sheet-camera"),
+  cue: $("#sheet-cue"),
+  milestones: $("#sheet-milestones"),
+};
+
+// Training
+const trainingTitle = $("#training-title");
+const trainingIntro = $("#training-intro");
+const closeTrainingButton = $("#close-training");
+const skillCamera = $("#skill-camera");
+const skillCue = $("#skill-cue");
+const skillBeta = $("#skill-beta");
+const startButton = $("#start-button");
+const pauseButton = $("#pause-button");
+const finishButton = $("#finish-button");
+const message = $("#message");
+const cameraBox = $("#camera-box");
+const video = $("#camera");
+const canvas = $("#overlay");
 const ctx = canvas.getContext("2d");
-const statsBox = document.querySelector("#stats");
-const angleText = document.querySelector("#angle");
-const feedbackText = document.querySelector("#feedback");
-const repsText = document.querySelector("#reps");
-const safetyDialog = document.querySelector("#safety-dialog");
-const safetyLink = document.querySelector("#safety-link");
-const summaryReps = document.querySelector("#summary-reps");
-const summaryScore = document.querySelector("#summary-score");
-const summaryErrors = document.querySelector("#summary-errors");
-const summaryProgress = document.querySelector("#summary-progress");
-const summaryStreak = document.querySelector("#summary-streak");
-const skillTitle = document.querySelector("#skill-title");
-const skillCamera = document.querySelector("#skill-camera");
-const skillCue = document.querySelector("#skill-cue");
-const skillBeta = document.querySelector("#skill-beta");
-const hintDialog = document.querySelector("#hint-dialog");
-const hintTitle = document.querySelector("#hint-title");
-const hintText = document.querySelector("#hint-text");
+const statsBox = $("#stats");
+const angleText = $("#angle");
+const feedbackText = $("#feedback");
+const repsText = $("#reps");
+
+// Results
+const summarySkill = $("#summary-skill");
+const summaryAmountLabel = $("#summary-amount-label");
+const summaryReps = $("#summary-reps");
+const summaryScore = $("#summary-score");
+const summaryErrors = $("#summary-errors");
+const summaryProgress = $("#summary-progress");
+const summaryStreak = $("#summary-streak");
+const newSetButton = $("#new-set-button");
+const doneButton = $("#done-button");
+
+// Dialogs
+const safetyDialog = $("#safety-dialog");
+const safetyLink = $("#safety-link");
+const hintDialog = $("#hint-dialog");
+const hintTitle = $("#hint-title");
+const hintText = $("#hint-text");
 
 const SAFETY_KEY = "safetyNoticeHidden";
 const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
+
+let userName = loadName();
+let activeTab = "home";
+let skillFilter = { level: null, query: "" };
 
 let currentSkillId = "push-up";
 let exercise = getExercise(currentSkillId);
@@ -56,28 +103,70 @@ let poseLandmarker;
 let stream = null;
 let running = false;
 let animationId = 0;
-let uiState = "idle"; // "idle", "running", "paused", "results" or "path"
-let stateBeforePath = "idle";
+let trainingState = "intro"; // "intro", "running" or "paused"
 let lastState = null;
 let lastPartialAt = 0;
 let lastAnnouncedHold = 0;
 
-// Shows and hides parts of the page depending on the current state.
-function setUiState(state) {
-  uiState = state;
-  trainingScreen.hidden = state === "results" || state === "path";
-  resultsScreen.hidden = state !== "results";
-  pathScreen.hidden = state !== "path";
-  startButton.hidden = state !== "idle";
-  pathButton.hidden = state !== "idle";
-  pauseButton.hidden = state !== "running" && state !== "paused";
-  finishButton.hidden = pauseButton.hidden;
-  pauseButton.textContent = state === "paused" ? "Resume" : "Pause";
-  cameraBox.hidden = state !== "running";
-  statsBox.hidden = state === "idle";
+// ---------- Screens and tabs ----------
+
+function showScreen(name) {
+  for (const [key, section] of Object.entries(screens)) {
+    section.hidden = key !== name;
+  }
+  tabBar.hidden = name !== "home" && name !== "skills";
+  for (const tab of tabs) {
+    tab.classList.toggle("is-active", tab.dataset.tab === name);
+  }
+  window.scrollTo(0, 0);
 }
 
-// Browser storage can fail (private mode), so every access is wrapped.
+function renderHome() {
+  const progress = loadProgress();
+  const streak = getStreak(progress.practiceDays);
+  helloText.textContent = userName ? `Hi, ${userName}!` : "Hi!";
+  streakCount.textContent = String(streak.weeks);
+  streakText.textContent = describeStreak(streak);
+  return renderRoad(road, progress, openSkillSheet);
+}
+
+function renderSkills() {
+  renderLevelChips(levelFilter, skillFilter.level, (level) => {
+    skillFilter = { ...skillFilter, level };
+    renderSkills();
+  });
+  renderSkillList(skillList, loadProgress(), skillFilter, openSkillSheet);
+}
+
+function showTab(tab) {
+  activeTab = tab;
+  if (tab === "home") {
+    const currentStep = renderHome();
+    showScreen("home");
+    // Scroll the next skill into view, like opening a map at your position.
+    currentStep?.scrollIntoView({ block: "center" });
+  } else {
+    renderSkills();
+    showScreen("skills");
+  }
+}
+
+// ---------- Welcome ----------
+
+function finishWelcome(event) {
+  event.preventDefault();
+  const name = cleanName(nameInput.value);
+  if (!name) {
+    nameInput.focus();
+    return;
+  }
+  userName = name;
+  saveName(name); // If saving fails, the name is kept until the app is closed.
+  showTab("home");
+}
+
+// ---------- Browser storage for the safety notice ----------
+
 function isSafetyHidden() {
   try {
     return localStorage.getItem(SAFETY_KEY) === "true";
@@ -111,6 +200,114 @@ function showSafetyNotice() {
     safetyDialog.returnValue = "";
     safetyDialog.showModal();
   });
+}
+
+// ---------- Hints (Continue / Cancel) ----------
+
+// Only one hint can wait for an answer at a time. One shared "close"
+// listener answers it, so an old dialog can never answer a newer one.
+let resolveHint = null;
+hintDialog.addEventListener("close", () => {
+  const resolve = resolveHint;
+  resolveHint = null;
+  resolve?.(hintDialog.returnValue === "continue");
+});
+
+function confirmHint(title, text) {
+  return new Promise((resolve) => {
+    resolveHint?.(false);
+    resolveHint = resolve;
+    hintTitle.textContent = title;
+    hintText.textContent = text;
+    hintDialog.returnValue = "";
+    hintDialog.showModal();
+  });
+}
+
+// ---------- Skill sheet and skill choice ----------
+
+let sheetSkill = null;
+
+function openSkillSheet(skill, levelUnlocked) {
+  sheetSkill = skill;
+  fillSkillSheet(sheetParts, skill, levelUnlocked);
+  sheet.returnValue = "";
+  sheet.showModal();
+}
+
+sheet.addEventListener("close", () => {
+  if (sheet.returnValue === "start" && sheetSkill) {
+    chooseSkill(sheetSkill);
+  }
+});
+
+// Tapping the dark area outside the sheet closes it.
+sheet.addEventListener("click", (event) => {
+  if (event.target === sheet) {
+    sheet.close("cancel");
+  }
+});
+
+// Free choice: any skill can be trained. Locked levels and
+// coach-only skills show a safety hint first.
+async function chooseSkill(skill) {
+  if (skill.coachRequired) {
+    const ok = await confirmHint(
+      "Coach required",
+      "This skill puts very high load on shoulders and elbows. Only train it with a qualified coach, proper equipment and assistance."
+    );
+    if (!ok) {
+      return;
+    }
+  }
+
+  if (!isLevelUnlocked(loadProgress(), skill.level)) {
+    const ok = await confirmHint(
+      "Not unlocked yet",
+      `This skill is usually trained after level ${skill.level - 1}. Make sure you have the basics first.`
+    );
+    if (!ok) {
+      return;
+    }
+  }
+
+  openTraining(skill.id);
+}
+
+// ---------- Training ----------
+
+function setTrainingState(state) {
+  trainingState = state;
+  trainingIntro.hidden = state !== "intro";
+  cameraBox.hidden = state !== "running";
+  statsBox.hidden = state === "intro";
+  pauseButton.hidden = state === "intro";
+  finishButton.hidden = state === "intro";
+  pauseButton.textContent = state === "paused" ? "Resume" : "Pause";
+}
+
+function resetSet() {
+  tracker = createTracker(exercise);
+  lastState = null;
+  lastPartialAt = 0;
+  lastAnnouncedHold = 0;
+  message.textContent = "";
+  angleText.textContent = "";
+  feedbackText.textContent = "";
+  repsText.textContent = "";
+}
+
+function openTraining(skillId) {
+  const skill = getSkill(skillId);
+  currentSkillId = skillId;
+  exercise = getExercise(skillId);
+  trainingTitle.textContent = skill.name;
+  skillCamera.textContent = CAMERA_VIEWS[skill.camera];
+  skillCue.textContent = `“${skill.cue}”`;
+  skillBeta.hidden = !skill.beta;
+  resetSet();
+  setTrainingState("intro");
+  showScreen("training");
 }
 
 async function loadPoseModel() {
@@ -164,6 +361,12 @@ function stopAnalysis() {
   cancelAnimationFrame(animationId);
 }
 
+function stopEverything() {
+  stopAnalysis();
+  stopCamera();
+  window.speechSynthesis.cancel();
+}
+
 // Shows and speaks feedback. Speaks only when the state changes.
 function giveFeedback(state, text, spokenText) {
   feedbackText.textContent = text;
@@ -208,7 +411,7 @@ function showProgress(result) {
     if (seconds === 0) {
       lastAnnouncedHold = 0;
     }
-    repsText.textContent = `Hold: ${seconds} s (best ${result.bestHoldSeconds} s)`;
+    repsText.textContent = `${seconds} s · best ${result.bestHoldSeconds} s`;
     return;
   }
 
@@ -218,8 +421,8 @@ function showProgress(result) {
     lastPartialAt = Date.now();
     speak(exercise.rep.partialCue ?? "Use the full range.", { priority: true });
   }
-  const depthHint = Date.now() - lastPartialAt < 3000 ? " - use the full range" : "";
-  repsText.textContent = `Reps: ${result.reps}${depthHint}`;
+  const depthHint = Date.now() - lastPartialAt < 3000 ? " · full range!" : "";
+  repsText.textContent = `${result.reps} ${result.reps === 1 ? "rep" : "reps"}${depthHint}`;
 }
 
 function detectPose() {
@@ -238,7 +441,7 @@ function detectPose() {
       drawSkeleton(landmarks);
 
       const pose = buildPose(landmarks, canvas.width, canvas.height);
-      angleText.textContent = `Tracking ${pose.side.name} side, elbow: ${Math.round(pose.m.elbow)}°`;
+      angleText.textContent = `Tracking ${pose.side.name} side · elbow ${Math.round(pose.m.elbow)}°`;
 
       const frame = tracker.update(pose, performance.now());
       giveFeedback(frame.state, frame.text, frame.spoken);
@@ -263,7 +466,7 @@ async function startTraining() {
   if (!cameraStarted) {
     return;
   }
-  setUiState("running");
+  setTrainingState("running");
 
   try {
     if (!poseLandmarker) {
@@ -275,18 +478,16 @@ async function startTraining() {
   } catch (error) {
     console.error(error);
     stopCamera();
-    setUiState("idle");
+    setTrainingState("intro");
     message.textContent = "Could not load the pose model.";
   }
 }
 
 // Pausing turns the camera off. The reps and statistics of the set are kept.
 function pauseTraining() {
-  stopAnalysis();
-  stopCamera();
-  window.speechSynthesis.cancel();
+  stopEverything();
   message.textContent = "Paused. Tap Resume when you are ready.";
-  setUiState("paused");
+  setTrainingState("paused");
 }
 
 async function resumeTraining() {
@@ -296,41 +497,52 @@ async function resumeTraining() {
   }
   message.textContent = "";
   lastState = null;
-  setUiState("running");
+  setTrainingState("running");
   startAnalysis();
 }
 
-// Ends the set: stops everything, turns the camera off, shows only the results.
+// Leaving the training without "Finish set" does not save the set.
+async function closeTraining() {
+  if (trainingState !== "intro" && tracker.hasData()) {
+    const leave = await confirmHint("Leave training?", "This set will not be saved.");
+    if (!leave) {
+      return;
+    }
+  }
+  stopEverything();
+  showTab(activeTab);
+}
+
+// Ends the set: stops everything, turns the camera off, shows the results.
 function finishSet() {
-  stopAnalysis();
-  stopCamera();
-  window.speechSynthesis.cancel();
+  stopEverything();
   summaryErrors.replaceChildren();
   summaryProgress.textContent = "";
+  summarySkill.textContent = getSkill(currentSkillId).name;
   summaryStreak.textContent = describeStreak(getStreak(loadProgress().practiceDays));
 
+  const isHold = exercise.measure === "hold";
+  summaryAmountLabel.textContent = isHold ? "Best hold" : "Reps";
+
   if (!tracker.hasData()) {
-    summaryReps.textContent = "No set recorded yet.";
-    summaryScore.textContent = "Get into the starting position first, then finish your set.";
-    setUiState("results");
+    summaryReps.textContent = "–";
+    summaryScore.textContent = "–";
+    const item = document.createElement("li");
+    item.textContent = "No set recorded. Get into the starting position first, then finish your set.";
+    summaryErrors.appendChild(item);
+    showScreen("results");
     return;
   }
 
   const result = tracker.summary();
-  const isHold = exercise.measure === "hold";
-  summaryReps.textContent = isHold ? `Best hold: ${result.seconds} s` : `Reps: ${result.reps}`;
-  summaryScore.textContent = `Form score: ${result.score}%`;
+  summaryReps.textContent = isHold ? `${result.seconds} s` : String(result.reps);
+  summaryScore.textContent = `${result.score}%`;
 
-  if (result.errors.length === 0) {
+  const notes = result.errors.length === 0 ? ["No form issues found. Nice work!"] : result.errors;
+  for (const note of notes) {
     const item = document.createElement("li");
-    item.textContent = "No form issues found. Nice work!";
+    item.textContent = note;
     summaryErrors.appendChild(item);
-  } else {
-    for (const error of result.errors) {
-      const item = document.createElement("li");
-      item.textContent = error;
-      summaryErrors.appendChild(item);
-    }
   }
 
   // Save the set to the user's progress
@@ -346,7 +558,7 @@ function finishSet() {
   }
   summaryStreak.textContent = describeStreak(getStreak(update.progress.practiceDays));
 
-  setUiState("results");
+  showScreen("results");
   const amount = isHold ? `Best hold ${result.seconds} seconds.` : `${result.reps} reps.`;
   const completedText = update.newlyCompleted ? " Skill completed. Well done." : "";
   speak(`Set finished. ${amount} Form score ${result.score} percent.${completedText}`, {
@@ -354,108 +566,37 @@ function finishSet() {
   });
 }
 
-// Goes back to the start screen with a clean slate.
-function startNewSet() {
-  window.speechSynthesis.cancel();
-  tracker = createTracker(exercise);
-  lastState = null;
-  lastPartialAt = 0;
-  lastAnnouncedHold = 0;
-  message.textContent = "";
-  angleText.textContent = "";
-  feedbackText.textContent = "";
-  repsText.textContent = "";
-  setUiState("idle");
-}
+// ---------- Events ----------
 
-// Shows the skill path. "Back" returns to the screen the user came from.
-function showSkillPath() {
-  stateBeforePath = uiState;
-  const progress = loadProgress();
-  pathStreak.textContent = describeStreak(getStreak(progress.practiceDays));
-  renderSkillPath(pathLevels, progress, chooseSkill);
-  setUiState("path");
-  window.scrollTo(0, 0);
+welcomeForm.addEventListener("submit", finishWelcome);
+for (const tab of tabs) {
+  tab.addEventListener("click", () => showTab(tab.dataset.tab));
 }
-
-function closeSkillPath() {
-  setUiState(stateBeforePath);
-}
-
-// Only one hint can wait for an answer at a time. One shared "close"
-// listener answers it, so an old dialog can never answer a newer one.
-let resolveHint = null;
-hintDialog.addEventListener("close", () => {
-  const resolve = resolveHint;
-  resolveHint = null;
-  resolve?.(hintDialog.returnValue === "continue");
+skillSearch.addEventListener("input", () => {
+  skillFilter = { ...skillFilter, query: skillSearch.value };
+  renderSkillList(skillList, loadProgress(), skillFilter, openSkillSheet);
 });
-
-// Shows a hint with "Continue" and "Cancel". Resolves to true on "Continue".
-function confirmHint(title, text) {
-  return new Promise((resolve) => {
-    resolveHint?.(false);
-    resolveHint = resolve;
-    hintTitle.textContent = title;
-    hintText.textContent = text;
-    hintDialog.returnValue = "";
-    hintDialog.showModal();
-  });
-}
-
-// Shows the chosen skill on the training screen.
-function showCurrentSkill() {
-  const skill = getSkill(currentSkillId);
-  skillTitle.textContent = skill.name;
-  skillCamera.textContent = `Camera: ${CAMERA_VIEWS[skill.camera]}`;
-  skillCue.textContent = `Coach cue: “${skill.cue}”`;
-  skillBeta.hidden = !skill.beta;
-}
-
-// Free choice: any evaluable skill can be trained. Locked levels and
-// coach-only skills show a safety hint first.
-async function chooseSkill(skill) {
-  if (skill.coachRequired) {
-    const ok = await confirmHint(
-      "Coach required",
-      "This skill puts very high load on shoulders and elbows. Only train it with a qualified coach, proper equipment and assistance."
-    );
-    if (!ok) {
-      return;
-    }
-  }
-
-  if (!isLevelUnlocked(loadProgress(), skill.level)) {
-    const ok = await confirmHint(
-      "Not unlocked yet",
-      `This skill is usually trained after level ${skill.level - 1}. Make sure you have the basics first.`
-    );
-    if (!ok) {
-      return;
-    }
-  }
-
-  currentSkillId = skill.id;
-  exercise = getExercise(skill.id);
-  showCurrentSkill();
-  startNewSet();
-  window.scrollTo(0, 0);
-}
-
 safetyLink.addEventListener("click", showSafetyNotice);
-pathButton.addEventListener("click", showSkillPath);
-resultsPathButton.addEventListener("click", showSkillPath);
-pathBackButton.addEventListener("click", closeSkillPath);
 startButton.addEventListener("click", startTraining);
+closeTrainingButton.addEventListener("click", closeTraining);
 pauseButton.addEventListener("click", () => {
-  if (uiState === "paused") {
+  if (trainingState === "paused") {
     resumeTraining();
   } else {
     pauseTraining();
   }
 });
 finishButton.addEventListener("click", finishSet);
-newSetButton.addEventListener("click", startNewSet);
+newSetButton.addEventListener("click", () => openTraining(currentSkillId));
+doneButton.addEventListener("click", () => {
+  window.speechSynthesis.cancel();
+  showTab(activeTab);
+});
 
-showCurrentSkill();
-setUiState("idle");
+// ---------- Start ----------
+
+if (userName) {
+  showTab("home");
+} else {
+  showScreen("welcome");
+}

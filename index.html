@@ -2,79 +2,210 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0f1115" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Calisthenics AI Coach</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <main>
-      <h1>Calisthenics AI Coach</h1>
-
-      <section id="training-screen">
-        <p>Your AI coach for better form.</p>
-        <div id="skill-box">
-          <h2 id="skill-title"></h2>
-          <p id="skill-camera" class="skill-info"></p>
-          <p id="skill-cue" class="skill-info"></p>
-          <p id="skill-beta" class="skill-info" hidden>
-            Beta: these camera rules follow our technique guide but are not tested with real
-            people yet. Feedback may be wrong. Trust your body first.
-          </p>
+    <div class="app">
+      <!-- Welcome: shown once, asks for the user's name -->
+      <section id="welcome-screen" class="screen welcome" hidden>
+        <div class="welcome-art" aria-hidden="true">
+          <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle cx="60" cy="60" r="56" fill="var(--accent-soft)" />
+            <circle cx="60" cy="34" r="9" fill="var(--accent)" />
+            <path
+              d="M60 45 L60 74 M60 52 L40 40 M60 52 L80 40 M60 74 L46 96 M60 74 L74 96"
+              stroke="var(--accent)"
+              stroke-width="7"
+              stroke-linecap="round"
+              fill="none"
+            />
+          </svg>
         </div>
-        <button id="start-button">Start training</button>
-        <p id="message"></p>
+        <h1 class="welcome-title">Hey, welcome!</h1>
+        <p class="welcome-text">
+          I'm your AI coach. I watch your form through the camera and talk you through every
+          rep. Step by step, from your first push-up to your first planche.
+        </p>
+        <form id="welcome-form" class="welcome-form">
+          <label for="name-input" class="field-label">What should I call you?</label>
+          <input
+            id="name-input"
+            class="text-input"
+            type="text"
+            autocomplete="given-name"
+            maxlength="30"
+            placeholder="Your name"
+            required
+          />
+          <button type="submit" class="button button-primary button-block">Let's go</button>
+        </form>
+        <p class="welcome-note">Your name and progress stay on this device.</p>
+      </section>
+
+      <!-- Home: the skill path -->
+      <section id="home-screen" class="screen tab-screen" hidden>
+        <header class="app-bar">
+          <div>
+            <p class="app-bar-hello" id="hello-text"></p>
+            <h1 class="app-bar-title">Your path</h1>
+          </div>
+          <div class="streak-chip" id="streak-chip" title="Weekly streak">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2c1 3.5 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1-3.8 2.2-5.2.3 1.6 1.1 2.7 2.3 3.2C11 8.5 11.3 5 12 2z"
+              />
+            </svg>
+            <span id="streak-count">0</span>
+          </div>
+        </header>
+        <p class="streak-text" id="streak-text"></p>
+        <div id="road" class="road"></div>
+        <p class="footnote">
+          Levels and rules are preliminary and not reviewed by calisthenics experts. Skills marked
+          "Beta" are not tested with real people yet.
+        </p>
+      </section>
+
+      <!-- Skills: free choice -->
+      <section id="skills-screen" class="screen tab-screen" hidden>
+        <header class="app-bar">
+          <div>
+            <p class="app-bar-hello">Free training</p>
+            <h1 class="app-bar-title">Skills</h1>
+          </div>
+        </header>
+        <input
+          id="skill-search"
+          class="text-input search-input"
+          type="search"
+          placeholder="Search skills"
+          autocomplete="off"
+        />
+        <div id="level-filter" class="chips" role="tablist" aria-label="Filter by level"></div>
+        <ul id="skill-list" class="skill-list"></ul>
+      </section>
+
+      <!-- Training: full screen, no tab bar -->
+      <section id="training-screen" class="screen full-screen" hidden>
+        <header class="top-bar">
+          <button id="close-training" class="icon-button" aria-label="Close">
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+            </svg>
+          </button>
+          <h2 id="training-title" class="top-bar-title"></h2>
+          <span class="top-bar-spacer"></span>
+        </header>
+
+        <div id="training-intro" class="training-intro">
+          <div class="info-card">
+            <p class="info-row"><span class="info-icon">📷</span><span id="skill-camera"></span></p>
+            <p class="info-row"><span class="info-icon">💬</span><span id="skill-cue"></span></p>
+            <p id="skill-beta" class="beta-note" hidden>
+              Beta: these camera rules follow our technique guide but are not tested with real
+              people yet. Feedback may be wrong. Trust your body first.
+            </p>
+          </div>
+          <button id="start-button" class="button button-primary button-block">Start training</button>
+          <button id="safety-link" class="button button-ghost button-block">Safety info</button>
+        </div>
+
+        <p id="message" class="message"></p>
 
         <div id="camera-box" class="camera-box" hidden>
           <video id="camera" autoplay playsinline muted></video>
           <canvas id="overlay"></canvas>
         </div>
 
-        <div id="stats" hidden>
-          <p id="angle"></p>
-          <p id="feedback"></p>
-          <p id="reps"></p>
+        <div id="stats" class="live-stats" hidden>
+          <p id="reps" class="live-count"></p>
+          <p id="feedback" class="live-feedback"></p>
+          <p id="angle" class="live-debug"></p>
         </div>
 
         <div class="controls">
-          <button id="pause-button" hidden>Pause</button>
-          <button id="finish-button" hidden>Finish set</button>
-        </div>
-
-        <div class="links">
-          <button id="path-button" class="link-button">Skill path</button>
-          <button id="safety-link" class="link-button">Safety info</button>
+          <button id="pause-button" class="button button-secondary" hidden>Pause</button>
+          <button id="finish-button" class="button button-primary" hidden>Finish set</button>
         </div>
       </section>
 
-      <section id="path-screen" hidden>
-        <h2>Your skill path</h2>
-        <p id="path-streak"></p>
-        <p class="path-note">
-          The push-up rules are tested. All skills marked "Beta" follow our technique guide but
-          are not tested with real people yet. Levels and rules are preliminary and not reviewed
-          by calisthenics experts.
-        </p>
-        <div id="path-levels"></div>
-        <button id="path-back-button">Back</button>
+      <!-- Results: full screen -->
+      <section id="results-screen" class="screen full-screen results" hidden>
+        <div class="results-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44">
+            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <h2 class="results-title">Set finished</h2>
+        <p id="summary-skill" class="results-skill"></p>
+        <div class="results-stats">
+          <div class="stat-tile">
+            <p class="stat-label" id="summary-amount-label">Reps</p>
+            <p class="stat-value" id="summary-reps"></p>
+          </div>
+          <div class="stat-tile">
+            <p class="stat-label">Form score</p>
+            <p class="stat-value" id="summary-score"></p>
+          </div>
+        </div>
+        <p id="summary-progress" class="results-progress"></p>
+        <div class="info-card">
+          <h3 class="card-title">Form notes</h3>
+          <ul id="summary-errors" class="notes-list"></ul>
+        </div>
+        <p id="summary-streak" class="results-streak"></p>
+        <div class="results-actions">
+          <button id="new-set-button" class="button button-primary button-block">Train again</button>
+          <button id="done-button" class="button button-secondary button-block">Done</button>
+        </div>
       </section>
 
-      <section id="results-screen" hidden>
-        <div id="summary">
-          <h2>Set summary</h2>
-          <p id="summary-reps"></p>
-          <p id="summary-score"></p>
-          <ul id="summary-errors"></ul>
-          <p id="summary-progress"></p>
-          <p id="summary-streak"></p>
-        </div>
-        <div class="controls">
-          <button id="new-set-button">New set</button>
-          <button id="results-path-button" class="secondary-button">Skill path</button>
-        </div>
-      </section>
-    </main>
+      <!-- Bottom tab bar -->
+      <nav id="tab-bar" class="tab-bar" aria-label="Main" hidden>
+        <button class="tab" data-tab="home" aria-label="Home">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="currentColor" />
+          </svg>
+          <span>Home</span>
+        </button>
+        <button class="tab" data-tab="skills" aria-label="Skills">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor" />
+            <rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor" />
+          </svg>
+          <span>Skills</span>
+        </button>
+      </nav>
+    </div>
 
-    <dialog id="safety-dialog">
+    <!-- Skill details: bottom sheet -->
+    <dialog id="skill-sheet" class="sheet">
+      <form method="dialog" class="sheet-body">
+        <span class="sheet-handle" aria-hidden="true"></span>
+        <p id="sheet-meta" class="sheet-meta"></p>
+        <h2 id="sheet-title" class="sheet-title"></h2>
+        <p id="sheet-status" class="sheet-status"></p>
+        <p id="sheet-warning" class="sheet-warning" hidden></p>
+        <p class="info-row"><span class="info-icon">📷</span><span id="sheet-camera"></span></p>
+        <p class="info-row"><span class="info-icon">💬</span><span id="sheet-cue"></span></p>
+        <ol id="sheet-milestones" class="milestones"></ol>
+        <button value="start" class="button button-primary button-block">Start training</button>
+        <button value="cancel" class="button button-ghost button-block">Close</button>
+      </form>
+    </dialog>
+
+    <dialog id="safety-dialog" class="modal">
       <form method="dialog">
         <h2>Before you start</h2>
         <ul>
@@ -83,17 +214,17 @@
           <li>Use a stable, non-slip surface with enough space around you.</li>
           <li>This app gives general guidance. It does not replace a doctor or a trainer.</li>
         </ul>
-        <button value="ok">I understand</button>
-        <button value="hide">Don't show this again</button>
+        <button value="ok" class="button button-primary button-block">I understand</button>
+        <button value="hide" class="button button-secondary button-block">Don't show this again</button>
       </form>
     </dialog>
 
-    <dialog id="hint-dialog">
+    <dialog id="hint-dialog" class="modal">
       <form method="dialog">
         <h2 id="hint-title"></h2>
         <p id="hint-text"></p>
-        <button value="continue">Continue</button>
-        <button value="cancel" class="secondary-button">Cancel</button>
+        <button value="continue" class="button button-primary button-block">Continue</button>
+        <button value="cancel" class="button button-secondary button-block">Cancel</button>
       </form>
     </dialog>
 
