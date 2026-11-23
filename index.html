@@ -31,7 +31,21 @@
           <button id="finish-button" hidden>Finish set</button>
         </div>
 
-        <button id="safety-link" class="link-button">Safety info</button>
+        <div class="links">
+          <button id="path-button" class="link-button">Skill path</button>
+          <button id="safety-link" class="link-button">Safety info</button>
+        </div>
+      </section>
+
+      <section id="path-screen" hidden>
+        <h2>Your skill path</h2>
+        <p id="path-streak"></p>
+        <p class="path-note">
+          Only the push-up is analyzed by the coach today. Levels and rules are preliminary and
+          not reviewed by calisthenics experts.
+        </p>
+        <div id="path-levels"></div>
+        <button id="path-back-button">Back</button>
       </section>
 
       <section id="results-screen" hidden>
@@ -43,7 +57,10 @@
           <p id="summary-progress"></p>
           <p id="summary-streak"></p>
         </div>
-        <button id="new-set-button">New set</button>
+        <div class="controls">
+          <button id="new-set-button">New set</button>
+          <button id="results-path-button" class="secondary-button">Skill path</button>
+        </div>
       </section>
     </main>
 

@@ -5,10 +5,17 @@ import { createRepCounter } from "./reps.js";
 import { createSession } from "./session.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
+import { renderSkillPath } from "./path-screen.js";
 import { speak } from "./voice.js";
 
 const trainingScreen = document.querySelector("#training-screen");
 const resultsScreen = document.querySelector("#results-screen");
+const pathScreen = document.querySelector("#path-screen");
+const pathButton = document.querySelector("#path-button");
+const resultsPathButton = document.querySelector("#results-path-button");
+const pathBackButton = document.querySelector("#path-back-button");
+const pathLevels = document.querySelector("#path-levels");
+const pathStreak = document.querySelector("#path-streak");
 const startButton = document.querySelector("#start-button");
 const pauseButton = document.querySelector("#pause-button");
 const finishButton = document.querySelector("#finish-button");
@@ -37,7 +44,8 @@ let poseLandmarker;
 let stream = null;
 let running = false;
 let animationId = 0;
-let uiState = "idle"; // "idle", "running", "paused" or "results"
+let uiState = "idle"; // "idle", "running", "paused", "results" or "path"
+let stateBeforePath = "idle";
 let lastState = null;
 let lastPartialAt = 0;
 let repCounter = createRepCounter();
@@ -46,9 +54,11 @@ let session = createSession();
 // Shows and hides parts of the page depending on the current state.
 function setUiState(state) {
   uiState = state;
-  trainingScreen.hidden = state === "results";
+  trainingScreen.hidden = state === "results" || state === "path";
   resultsScreen.hidden = state !== "results";
+  pathScreen.hidden = state !== "path";
   startButton.hidden = state !== "idle";
+  pathButton.hidden = state !== "idle";
   pauseButton.hidden = state !== "running" && state !== "paused";
   finishButton.hidden = pauseButton.hidden;
   pauseButton.textContent = state === "paused" ? "Resume" : "Pause";
@@ -366,7 +376,24 @@ function startNewSet() {
   setUiState("idle");
 }
 
+// Shows the skill path. "Back" returns to the screen the user came from.
+function showSkillPath() {
+  stateBeforePath = uiState;
+  const progress = loadProgress();
+  pathStreak.textContent = describeStreak(getStreak(progress.practiceDays));
+  renderSkillPath(pathLevels, progress);
+  setUiState("path");
+  window.scrollTo(0, 0);
+}
+
+function closeSkillPath() {
+  setUiState(stateBeforePath);
+}
+
 safetyLink.addEventListener("click", showSafetyNotice);
+pathButton.addEventListener("click", showSkillPath);
+resultsPathButton.addEventListener("click", showSkillPath);
+pathBackButton.addEventListener("click", closeSkillPath);
 startButton.addEventListener("click", startTraining);
 pauseButton.addEventListener("click", () => {
   if (uiState === "paused") {

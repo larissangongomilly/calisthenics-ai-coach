@@ -130,3 +130,134 @@ dialog button[value="hide"] {
 .controls #finish-button {
   margin-top: 0;
 }
+
+#results-screen .controls {
+  margin-top: 24px;
+}
+
+#results-screen .controls #new-set-button {
+  margin-top: 0;
+}
+
+.secondary-button {
+  background: transparent;
+  color: #f2f4f7;
+  border: 1px solid #2a2f3a;
+}
+
+.links {
+  display: flex;
+  gap: 16px;
+}
+
+/* Skill path screen */
+.path-note {
+  color: #9aa3b2;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.level-card {
+  margin-top: 16px;
+  border: 1px solid #2a2f3a;
+  border-radius: 20px;
+  background: #1a1d24;
+}
+
+.level-card.is-locked {
+  opacity: 0.6;
+}
+
+.level-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.level-summary::-webkit-details-marker {
+  display: none;
+}
+
+.level-title {
+  font-weight: 600;
+}
+
+.level-state {
+  color: #9aa3b2;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.level-card[open]:not(.is-locked) .level-state {
+  color: #c6f432;
+}
+
+.level-hint {
+  margin: 0 20px 12px;
+  color: #9aa3b2;
+  font-size: 14px;
+}
+
+.skill-list {
+  margin: 0;
+  padding: 0 12px 12px;
+  list-style: none;
+}
+
+.skill-card {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #0f1115;
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.skill-name {
+  font-weight: 600;
+}
+
+.skill-status {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-done {
+  color: #c6f432;
+}
+
+.status-progress {
+  color: #f2f4f7;
+}
+
+.status-new,
+.status-soon {
+  color: #9aa3b2;
+}
+
+.skill-track {
+  margin: 4px 0 0;
+  color: #9aa3b2;
+  font-size: 13px;
+}
+
+.skill-milestones {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: #c9ced8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#path-back-button {
+  margin-top: 24px;
+}
