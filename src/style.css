@@ -244,9 +244,9 @@ p {
   margin: 28px 0 22px;
   padding: 16px 18px;
   border-radius: var(--radius);
-  background: var(--accent);
+  background: var(--level-color, var(--accent));
   color: var(--on-accent);
-  box-shadow: 0 4px 0 var(--accent-dark);
+  box-shadow: 0 4px 0 var(--level-shadow, var(--accent-dark));
 }
 
 .level-banner.is-locked {
@@ -256,9 +256,7 @@ p {
 }
 
 .level-banner.is-done {
-  background: var(--surface-2);
-  color: var(--accent);
-  box-shadow: 0 4px 0 #14171d;
+  color: var(--text);
 }
 
 .level-kicker {

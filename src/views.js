@@ -84,10 +84,17 @@ export function renderRoad(container, progress, onSelect) {
 
   for (const level of levels) {
     const banner = element("div", "level-banner");
+    const colors = LEVELS.find((l) => l.level === level.level);
     if (!level.unlocked) {
       banner.classList.add("is-locked");
     } else if (level.completed) {
+      // Completed level: dark level color, like completed skills
       banner.classList.add("is-done");
+      banner.style.setProperty("--level-color", colors.dark);
+      banner.style.setProperty("--level-shadow", "#14171d");
+    } else {
+      banner.style.setProperty("--level-color", colors.color);
+      banner.style.setProperty("--level-shadow", colors.dark);
     }
     const text = element("div");
     text.append(element("p", "level-kicker", `Level ${level.level}`), element("p", "level-name", level.name));

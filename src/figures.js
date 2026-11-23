@@ -1,7 +1,7 @@
 // Outline figures that show the pose of each skill, with its equipment.
 // Drawn as SVG from joint points (viewBox 0..100), so they stay sharp and
 // can be colored per state. Approved designs, see docs/skill-path.md.
-import { SKILLS } from "./skills.js";
+import { LEVELS, getSkill } from "./skills.js";
 
 // Equipment, head [x, y], then body lines as flat [x1, y1, x2, y2, ...] lists.
 // The first line is the main body (feet -> knees -> hips -> shoulders).
@@ -70,12 +70,11 @@ const HATCH = "#2f343e";
 
 // ---------- Colors ----------
 
-// Every skill gets its own color, spread around the color wheel (golden angle),
-// so neighbors on the path never look alike.
+// Skills use the color of their level (see LEVELS in skills.js):
+// bright for the next skill, dark for completed skills.
 export function getSkillColors(skillId) {
-  const index = Math.max(0, SKILLS.findIndex((s) => s.id === skillId));
-  const hue = Math.round((index * 137.508 + 75) % 360);
-  return { bright: `hsl(${hue} 85% 62%)`, done: `hsl(${hue} 60% 38%)` };
+  const level = LEVELS.find((l) => l.level === getSkill(skillId)?.level) ?? LEVELS[0];
+  return { bright: level.color, done: level.dark };
 }
 
 export const STATE_COLORS = { open: "#9aa3b2", locked: "#3a3f4a" };

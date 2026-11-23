@@ -109,8 +109,8 @@ Each skill sheet shows the goal, on how many days it was reached, best reps or h
 ## Skill figures
 Every skill is shown as an outline figure in its pose, with its equipment (`src/figures.js`):
 - **Equipment:** floor (hatched), pull-up bar in a frame, low bar, dip bars, parallettes, bench, wall, pole and rings, so floor and bar skills are easy to tell apart.
-- **Colors by state:** locked = dark gray with a lock, unlocked = gray, next skill ("Start") = the skill's own bright color, completed = the same color, darker, with a check.
-- **Own color per skill:** colors are spread around the color wheel, so neighbors on the path never look alike.
+- **Colors by state:** locked = dark gray with a lock, unlocked = gray, next skill ("Start") = the level's bright color, completed = the same color, darker, with a check.
+- **Own color per level:** the level banner and all figures of a level share one color (level 1 lime, 2 teal, 3 blue, 4 violet, 5 pink, 6 orange, 7 gold). A completed level shows its banner in the dark color.
 - **Overlaps:** only crow pose and frog stand draw the knee in front of the arm, because that detail matters for the technique.
 
 ## Guided setup

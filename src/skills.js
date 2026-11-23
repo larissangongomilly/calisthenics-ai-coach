@@ -56,14 +56,16 @@ export const CAMERA_VIEWS = {
   "side+front": "Needs a side view and a front view",
 };
 
+// Every level has its own color: the banner and all figures of the level use it.
+// color = bright (banner, next skill), dark = completed skills.
 export const LEVELS = [
-  { level: 1, name: "Basics" },
-  { level: 2, name: "First steps" },
-  { level: 3, name: "First free skills" },
-  { level: 4, name: "Advanced" },
-  { level: 5, name: "Very advanced" },
-  { level: 6, name: "Expert" },
-  { level: 7, name: "Elite" },
+  { level: 1, name: "Basics", color: "#c6f432", dark: "#6f8a1c" },
+  { level: 2, name: "First steps", color: "#3fe0c5", dark: "#1f7d6e" },
+  { level: 3, name: "First free skills", color: "#56b4ff", dark: "#2a5f8c" },
+  { level: 4, name: "Advanced", color: "#a08cff", dark: "#56478f" },
+  { level: 5, name: "Very advanced", color: "#ff7ad6", dark: "#8c3f75" },
+  { level: 6, name: "Expert", color: "#ff9450", dark: "#8c4e27" },
+  { level: 7, name: "Elite", color: "#ffd23f", dark: "#8c7220" },
 ];
 
 // Small helper to keep the list below short and readable.
