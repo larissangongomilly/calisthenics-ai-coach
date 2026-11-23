@@ -1,6 +1,7 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
 import { checkBodyLine } from "./rules.js";
+import { speak } from "./voice.js";
 
 const startButton = document.querySelector("#start-button");
 const message = document.querySelector("#message");
@@ -11,6 +12,7 @@ const angleText = document.querySelector("#angle");
 const feedbackText = document.querySelector("#feedback");
 
 let poseLandmarker;
+let wasStraight = null;
 
 async function loadPoseModel() {
   const vision = await FilesetResolver.forVisionTasks(
@@ -66,6 +68,16 @@ function detectPose() {
         feedbackText.textContent = `Great body line! (${Math.round(bodyLine.angle)}°)`;
       } else {
         feedbackText.textContent = `Keep your body in one line (${Math.round(bodyLine.angle)}°)`;
+      }
+
+      // Speak only when the state changes
+      if (bodyLine.isStraight !== wasStraight) {
+        const spoken = speak(
+          bodyLine.isStraight ? "Great body line." : "Keep your body in one line."
+        );
+        if (spoken) {
+          wasStraight = bodyLine.isStraight;
+        }
       }
     }
   }
