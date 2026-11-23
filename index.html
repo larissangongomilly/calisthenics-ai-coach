@@ -115,6 +115,13 @@
               people yet. Feedback may be wrong. Trust your body first.
             </p>
           </div>
+          <label id="guide-option" class="toggle-row" hidden>
+            <span>
+              <span class="toggle-title">Guide me into the position</span>
+              <span class="toggle-text">Step-by-step voice instructions before the set starts</span>
+            </span>
+            <input id="guide-toggle" type="checkbox" class="toggle" />
+          </label>
           <button id="start-button" class="button button-primary button-block">Start training</button>
           <button id="safety-link" class="button button-ghost button-block">Safety info</button>
         </div>
@@ -130,6 +137,7 @@
           <p id="reps" class="live-count"></p>
           <p id="feedback" class="live-feedback"></p>
           <p id="angle" class="live-debug"></p>
+          <button id="skip-guide" class="button button-ghost" hidden>Skip guide</button>
         </div>
 
         <div class="controls">

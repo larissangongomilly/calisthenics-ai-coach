@@ -112,3 +112,10 @@ Every skill is shown as an outline figure in its pose, with its equipment (`src/
 - **Colors by state:** locked = dark gray with a lock, unlocked = gray, next skill ("Start") = the skill's own bright color, completed = the same color, darker, with a check.
 - **Own color per skill:** colors are spread around the color wheel, so neighbors on the path never look alike.
 - **Overlaps:** only crow pose and frog stand draw the knee in front of the arm, because that detail matters for the technique.
+
+## Guided setup
+Before a set, the coach can talk the user into the starting position step by step (`src/guide.js`, steps in `setup` in `src/exercises.js`):
+- Steps the camera can check (hands on the floor, legs straight, a foot in the air) move on as soon as the user does them.
+- Steps the camera cannot see (for example "press your lower back into the floor") move on after a few seconds.
+- The guide is on by default until the user has finished it once for that skill. It can be switched off before the set and skipped during it.
+- Available for level 1 so far: push-up, inverted row, hollow body hold, crow pose. The other skills follow after testing.

@@ -2,6 +2,7 @@ import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { buildPose } from "./pose.js";
 import { getExercise } from "./exercises.js";
 import { createTracker } from "./tracker.js";
+import { createGuide } from "./guide.js";
 import { speak } from "./voice.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
@@ -68,6 +69,9 @@ const closeTrainingButton = $("#close-training");
 const skillCamera = $("#skill-camera");
 const skillCue = $("#skill-cue");
 const skillBeta = $("#skill-beta");
+const guideOption = $("#guide-option");
+const guideToggle = $("#guide-toggle");
+const skipGuideButton = $("#skip-guide");
 const startButton = $("#start-button");
 const pauseButton = $("#pause-button");
 const finishButton = $("#finish-button");
@@ -100,6 +104,7 @@ const hintTitle = $("#hint-title");
 const hintText = $("#hint-text");
 
 const SAFETY_KEY = "safetyNoticeHidden";
+const GUIDE_SEEN_KEY = "guideSeen"; // Skills whose guided setup the user has finished once
 const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
 
 let userName = loadName();
@@ -118,6 +123,37 @@ let trainingState = "intro"; // "intro", "running" or "paused"
 let lastState = null;
 let lastPartialAt = 0;
 let lastAnnouncedHold = 0;
+let guide = null; // Guided setup while it runs, otherwise null
+
+// ---------- Guided setup: remember which skills were guided once ----------
+
+function loadGuideSeen() {
+  try {
+    const list = JSON.parse(localStorage.getItem(GUIDE_SEEN_KEY) ?? "[]");
+    return new Set(Array.isArray(list) ? list : []);
+  } catch (error) {
+    return new Set();
+  }
+}
+
+function markGuideSeen(skillId) {
+  const seen = loadGuideSeen();
+  seen.add(skillId);
+  try {
+    localStorage.setItem(GUIDE_SEEN_KEY, JSON.stringify([...seen]));
+  } catch (error) {
+    // Not saved: the guide is simply switched on again next time.
+  }
+}
+
+function endGuide() {
+  if (guide) {
+    markGuideSeen(currentSkillId);
+  }
+  guide = null;
+  skipGuideButton.hidden = true;
+  lastState = null; // So the first form cue is spoken
+}
 
 // ---------- Screens and tabs ----------
 
@@ -299,6 +335,8 @@ function setTrainingState(state) {
 
 function resetSet() {
   tracker = createTracker(exercise);
+  guide = null;
+  skipGuideButton.hidden = true;
   lastState = null;
   lastPartialAt = 0;
   lastAnnouncedHold = 0;
@@ -316,6 +354,9 @@ function openTraining(skillId) {
   skillCamera.textContent = CAMERA_VIEWS[skill.camera];
   skillCue.textContent = `“${skill.cue}”`;
   skillBeta.hidden = !skill.beta;
+  // The guide is on by default until the user has finished it once for this skill.
+  guideOption.hidden = !exercise.setup;
+  guideToggle.checked = Boolean(exercise.setup) && !loadGuideSeen().has(skillId);
   resetSet();
   setTrainingState("intro");
   showScreen("training");
@@ -436,6 +477,18 @@ function showProgress(result) {
   repsText.textContent = `${result.reps} ${result.reps === 1 ? "rep" : "reps"}${depthHint}`;
 }
 
+function runGuide(pose) {
+  const step = guide.update(pose, performance.now());
+  feedbackText.textContent = step.text;
+  repsText.textContent = step.done ? "" : `Step ${step.step} of ${guide.total}`;
+  if (step.isNew) {
+    speak(step.spoken, { priority: true });
+  }
+  if (step.done) {
+    endGuide();
+  }
+}
+
 function detectPose() {
   if (!running) {
     return;
@@ -448,11 +501,22 @@ function detectPose() {
     const result = poseLandmarker.detectForVideo(video, performance.now());
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Nobody in view yet: the guide still speaks its first step.
+    if (guide && result.landmarks.length === 0) {
+      runGuide({ visible: false });
+    }
+
     for (const landmarks of result.landmarks) {
       drawSkeleton(landmarks);
 
       const pose = buildPose(landmarks, canvas.width, canvas.height);
       angleText.textContent = `Tracking ${pose.side.name} side · elbow ${Math.round(pose.m.elbow)}°`;
+
+      // Guided setup first: one instruction at a time until the user is in position.
+      if (guide) {
+        runGuide(pose);
+        continue;
+      }
 
       const frame = tracker.update(pose, performance.now());
       giveFeedback(frame.state, frame.text, frame.spoken);
@@ -478,6 +542,11 @@ async function startTraining() {
     return;
   }
   setTrainingState("running");
+
+  if (guideToggle.checked && exercise.setup) {
+    guide = createGuide(exercise.setup);
+    skipGuideButton.hidden = false;
+  }
 
   try {
     if (!poseLandmarker) {
@@ -601,6 +670,12 @@ pauseButton.addEventListener("click", () => {
   }
 });
 finishButton.addEventListener("click", finishSet);
+skipGuideButton.addEventListener("click", () => {
+  window.speechSynthesis.cancel();
+  endGuide();
+  feedbackText.textContent = "";
+  repsText.textContent = "";
+});
 newSetButton.addEventListener("click", () => openTraining(currentSkillId));
 doneButton.addEventListener("click", () => {
   window.speechSynthesis.cancel();

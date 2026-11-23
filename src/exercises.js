@@ -241,6 +241,21 @@ export const EXERCISES = {
       },
     ],
     goodCue: { text: "Great body line!", spoken: "Great body line." },
+    setup: [
+      { say: "Place your phone to your side, so it sees you from head to feet.", check: (p) => p.visible },
+      {
+        say: "Kneel down. Place your hands on the floor, a bit wider than your shoulders, fingers pointing forward.",
+        check: onHands,
+      },
+      {
+        say: "Step your feet back, one at a time, until your legs are straight.",
+        check: (p) => onHands(p) && p.m.knee >= 150 && p.m.bodyTilt <= 35,
+      },
+      {
+        say: "Tense your belly and glutes. Make one straight line from your head to your heels.",
+        check: (p) => getPositionStatus(p.raw, p.width, p.height) === "ready" && checkBodyLine(p.raw).isStraight,
+      },
+    ],
   },
 
   "inverted-row": {
@@ -253,6 +268,15 @@ export const EXERCISES = {
     rep: { metric: (p) => p.m.elbow, down: 100, up: 150, start: 140, partialCue: "Pull your chest closer to the bar." },
     checks: [straightLine("Keep your hips level with your body.", "Hips dropped")],
     goodCue: "Good row.",
+    setup: [
+      { say: "Use a sturdy bar at about hip height. Place your phone to your side.", wait: 6000 },
+      { say: "Lie under the bar and grip it a little wider than your shoulders.", check: hanging },
+      { say: "Straighten your arms and put your heels on the floor.", check: (p) => hanging(p) && p.m.elbow >= 150 },
+      {
+        say: "Lift your hips until your body forms one straight line.",
+        check: (p) => hanging(p) && p.m.elbow >= 150 && p.m.bodyLine >= 160,
+      },
+    ],
   },
 
   "hollow-body-hold": {
@@ -267,6 +291,21 @@ export const EXERCISES = {
       kneesStraight("Straighten your legs if your lower back stays down."),
     ],
     goodCue: "Good. Keep your lower back on the floor.",
+    setup: [
+      { say: "Lie on your back, side on to the camera.", check: (p) => p.m.trunkTilt <= 40 },
+      {
+        say: "Bend your knees and bring them up over your hips.",
+        check: (p) => p.m.trunkTilt <= 40 && p.m.knee < 120 && p.side.knee.y < p.side.hip.y,
+      },
+      {
+        say: "Breathe out and press your lower back into the floor. Lift your head and shoulder blades a little.",
+        wait: 6000,
+      },
+      {
+        say: "Now slowly straighten your legs. Only go as low as your lower back stays on the floor.",
+        check: (p) => p.m.trunkTilt <= 40 && p.side.ankle.y < p.side.hip.y && p.m.legTilt >= 5 && p.m.knee >= 140,
+      },
+    ],
   },
 
   "crow-pose": {
@@ -279,6 +318,25 @@ export const EXERCISES = {
     ),
     checks: [check("tuck", (p) => p.m.knee <= 110, "Keep your knees pulled in.", "Legs drifted away")],
     goodCue: "Good balance. Keep pressing into the floor.",
+    setup: [
+      {
+        say: "Squat down and place your hands on the floor, shoulder-width apart. Spread your fingers.",
+        check: onHands,
+      },
+      {
+        say: "Bend your elbows and rest your knees on the back of your upper arms.",
+        check: (p) => onHands(p) && p.m.elbow < 160 && p.m.knee < 110,
+      },
+      { say: "Slowly shift your weight forward onto your hands. Look a little ahead of them.", wait: 5000 },
+      {
+        say: "Lift one foot off the floor.",
+        check: (p) => Math.min(p.left.ankle.y, p.right.ankle.y) < p.side.wrist.y,
+      },
+      {
+        say: "Now lift the other foot and find your balance.",
+        check: (p) => Math.max(p.left.ankle.y, p.right.ankle.y) < p.side.wrist.y,
+      },
+    ],
   },
 
   // Level 2 – First steps
