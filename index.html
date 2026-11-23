@@ -197,11 +197,44 @@
         <h2 id="sheet-title" class="sheet-title"></h2>
         <p id="sheet-status" class="sheet-status"></p>
         <p id="sheet-warning" class="sheet-warning" hidden></p>
+
+        <div class="goal-card">
+          <p class="goal-label">Goal to complete</p>
+          <p id="sheet-goal" class="goal-text"></p>
+        </div>
+
+        <h3 class="sheet-section">Your progress</h3>
+        <p id="sheet-empty" class="sheet-empty">No sets yet. Your first set will show up here.</p>
+        <div id="sheet-progress">
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <p class="stat-label" id="sheet-best-label">Best</p>
+              <p class="mini-value" id="sheet-best"></p>
+            </div>
+            <div class="mini-stat">
+              <p class="stat-label">Best form</p>
+              <p class="mini-value" id="sheet-best-score"></p>
+            </div>
+            <div class="mini-stat">
+              <p class="stat-label">Sets</p>
+              <p class="mini-value" id="sheet-sets"></p>
+            </div>
+          </div>
+          <p class="sheet-subtitle" id="sheet-notes-title">Notes from your last set</p>
+          <ul id="sheet-notes" class="notes-list"></ul>
+          <p class="sheet-subtitle">Last sets</p>
+          <ul id="sheet-history" class="history-list"></ul>
+        </div>
+
+        <h3 class="sheet-section">How to train it</h3>
         <p class="info-row"><span class="info-icon">📷</span><span id="sheet-camera"></span></p>
         <p class="info-row"><span class="info-icon">💬</span><span id="sheet-cue"></span></p>
         <ol id="sheet-milestones" class="milestones"></ol>
-        <button value="start" class="button button-primary button-block">Start training</button>
-        <button value="cancel" class="button button-ghost button-block">Close</button>
+
+        <div class="sheet-actions">
+          <button value="start" class="button button-primary button-block">Start training</button>
+          <button value="cancel" class="button button-ghost button-block">Close</button>
+        </div>
       </form>
     </dialog>
 

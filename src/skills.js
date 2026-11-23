@@ -199,6 +199,16 @@ export const SKILLS = [
     "Lift your hips, legs together, rings steady.", COACH),
 ];
 
+// The goal that completes a skill, as shown to the user.
+export function getCompletionGoal(skill) {
+  if (skill.measure === "hold") {
+    const { minHoldSeconds, minFormScore } = RULES.holdCompleted;
+    return `Hold for ${minHoldSeconds} s with at least ${minFormScore}% form`;
+  }
+  const { minCleanReps, minFormScore } = RULES.skillCompleted;
+  return `${minCleanReps} clean reps in one set with at least ${minFormScore}% form`;
+}
+
 export function getSkill(id) {
   return SKILLS.find((s) => s.id === id) ?? null;
 }

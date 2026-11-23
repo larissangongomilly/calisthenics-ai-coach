@@ -1,5 +1,5 @@
 // Draws the app's lists: the home road, the skills list and the skill sheet.
-import { CAMERA_VIEWS, LEVELS, TRACKS } from "./skills.js";
+import { CAMERA_VIEWS, LEVELS, TRACKS, getCompletionGoal } from "./skills.js";
 import { getSkillPath } from "./path.js";
 
 // ---------- Icons (inline SVG, so they follow the text color) ----------
@@ -225,4 +225,58 @@ export function fillSkillSheet(parts, skill, levelUnlocked) {
   parts.camera.textContent = CAMERA_VIEWS[skill.camera];
   parts.cue.textContent = `“${skill.cue}”`;
   parts.milestones.replaceChildren(...skill.milestones.map((m) => element("li", "", m)));
+
+  fillSkillProgress(parts, skill);
+}
+
+const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Berlin",
+});
+
+function formatAmount(skill, set) {
+  if (skill.measure === "hold") {
+    return `${set.seconds} s`;
+  }
+  return `${set.reps} ${set.reps === 1 ? "rep" : "reps"}`;
+}
+
+// "Your progress": goal, best values, notes of the last set, last sets.
+function fillSkillProgress(parts, skill) {
+  parts.goal.textContent = skill.completedAt
+    ? `${getCompletionGoal(skill)} ✓ Done on ${DATE_FORMAT.format(new Date(skill.completedAt))}`
+    : getCompletionGoal(skill);
+
+  const history = skill.history;
+  parts.empty.hidden = history.length > 0;
+  parts.progress.hidden = history.length === 0;
+  if (history.length === 0) {
+    return;
+  }
+
+  const isHold = skill.measure === "hold";
+  parts.bestLabel.textContent = isHold ? "Best hold" : "Best reps";
+  parts.best.textContent = isHold ? `${skill.bestSeconds} s` : String(skill.bestReps);
+  parts.bestScore.textContent = `${skill.bestScore}%`;
+  parts.sets.textContent = String(history.length);
+
+  const last = history[history.length - 1];
+  const notes = last.notes.length > 0 ? last.notes : ["No form issues found."];
+  parts.notes.replaceChildren(...notes.map((note) => element("li", "", note)));
+
+  // Newest first, at most 5 sets
+  const recent = history.slice(-5).reverse();
+  parts.history.replaceChildren(
+    ...recent.map((set) => {
+      const item = element("li", "history-item");
+      item.append(
+        element("span", "history-date", DATE_FORMAT.format(new Date(set.date))),
+        element("span", "history-value", `${formatAmount(skill, set)} · ${set.score}%`)
+      );
+      return item;
+    })
+  );
 }

@@ -821,7 +821,7 @@ dialog::backdrop {
 .sheet-body {
   display: flex;
   flex-direction: column;
-  padding: 12px 22px calc(20px + var(--safe-bottom));
+  padding: 12px 22px 0;
 }
 
 .sheet-handle {
@@ -899,4 +899,105 @@ dialog::backdrop {
 
 .modal ul {
   padding-left: 20px;
+}
+
+/* ---------- Skill progress in the sheet ---------- */
+.goal-card {
+  padding: 12px 14px;
+  border: 2px solid var(--accent-soft);
+  border-radius: 14px;
+}
+
+.goal-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.goal-text {
+  margin-top: 4px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.sheet-section {
+  margin: 22px 0 10px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.sheet-empty {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mini-stat {
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.mini-stat .stat-label {
+  font-size: 11px;
+}
+
+.mini-value {
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.sheet-subtitle {
+  margin: 16px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.history-item:last-child {
+  border-bottom: 0;
+}
+
+.history-date {
+  color: var(--muted);
+}
+
+.history-value {
+  font-weight: 700;
+}
+
+/* Start and Close stay visible while the sheet scrolls. */
+.sheet-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 12px -22px 0;
+  padding: 4px 22px calc(16px + var(--safe-bottom));
+  background: var(--surface);
 }

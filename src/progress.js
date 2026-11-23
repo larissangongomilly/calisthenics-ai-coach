@@ -27,17 +27,39 @@ function isDay(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+// How many sets per skill are kept in the history (oldest are dropped).
+export const MAX_HISTORY = 20;
+
+// One saved set: { date, reps, seconds, score, notes[] }
+function cleanSet(set) {
+  if (!set || typeof set !== "object" || typeof set.date !== "string") {
+    return null;
+  }
+  return {
+    date: set.date,
+    reps: isNumber(set.reps) ? set.reps : 0,
+    seconds: isNumber(set.seconds) ? set.seconds : 0,
+    score: isNumber(set.score) ? set.score : 0,
+    notes: Array.isArray(set.notes) ? set.notes.filter((n) => typeof n === "string").slice(0, 10) : [],
+  };
+}
+
 // Keeps only valid entries, so broken or old data never crashes the app.
+// Data saved before the history existed simply gets an empty history.
 function cleanSkillEntry(entry) {
   if (!entry || typeof entry !== "object") {
     return null;
   }
+  const history = Array.isArray(entry.history)
+    ? entry.history.map(cleanSet).filter(Boolean).slice(-MAX_HISTORY)
+    : [];
   return {
     completedAt: typeof entry.completedAt === "string" ? entry.completedAt : null,
     bestReps: isNumber(entry.bestReps) ? entry.bestReps : 0,
     bestSeconds: isNumber(entry.bestSeconds) ? entry.bestSeconds : 0,
     bestScore: isNumber(entry.bestScore) ? entry.bestScore : 0,
     lastPracticedAt: typeof entry.lastPracticedAt === "string" ? entry.lastPracticedAt : null,
+    history,
   };
 }
 
@@ -83,7 +105,8 @@ export function saveProgress(progress, storage = globalThis.localStorage) {
 }
 
 // Updates the progress with the result of one set.
-// result: { reps, seconds, score } (score in percent, reps = clean reps).
+// result: { reps, seconds, score, errors } (score in percent, reps = clean reps,
+// errors = form notes from the tracker summary).
 // Returns { progress, isPractice, newlyCompleted }. Does not save by itself.
 export function recordSet(progress, skillId, result, now = new Date()) {
   const skill = getSkill(skillId);
@@ -109,12 +132,15 @@ export function recordSet(progress, skillId, result, now = new Date()) {
   const old = progress.skills[skillId] ?? cleanSkillEntry({});
   const newlyCompleted = skill.evaluable && done && !old.completedAt;
 
+  const set = cleanSet({ date: now.toISOString(), reps, seconds, score, notes: result.errors });
+
   const entry = {
     completedAt: newlyCompleted ? now.toISOString() : old.completedAt,
     bestReps: Math.max(old.bestReps, reps),
     bestSeconds: Math.max(old.bestSeconds, seconds),
     bestScore: Math.max(old.bestScore, score),
     lastPracticedAt: now.toISOString(),
+    history: [...old.history, set].slice(-MAX_HISTORY),
   };
 
   const practiceDays = isPractice

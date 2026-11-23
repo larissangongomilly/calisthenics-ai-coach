@@ -17,6 +17,8 @@ export function getSkillPath(progress) {
         bestReps: entry?.bestReps ?? 0,
         bestSeconds: entry?.bestSeconds ?? 0,
         bestScore: entry?.bestScore ?? 0,
+        completedAt: entry?.completedAt ?? null,
+        history: entry?.history ?? [],
       };
     });
 

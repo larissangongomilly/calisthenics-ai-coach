@@ -48,6 +48,15 @@ const sheetParts = {
   camera: $("#sheet-camera"),
   cue: $("#sheet-cue"),
   milestones: $("#sheet-milestones"),
+  goal: $("#sheet-goal"),
+  empty: $("#sheet-empty"),
+  progress: $("#sheet-progress"),
+  bestLabel: $("#sheet-best-label"),
+  best: $("#sheet-best"),
+  bestScore: $("#sheet-best-score"),
+  sets: $("#sheet-sets"),
+  notes: $("#sheet-notes"),
+  history: $("#sheet-history"),
 };
 
 // Training
