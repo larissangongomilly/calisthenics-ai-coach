@@ -1,6 +1,6 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
-import { checkBodyLine } from "./rules.js";
+import { checkBodyLine, isInPlankPosition } from "./rules.js";
 import { speak } from "./voice.js";
 
 const startButton = document.querySelector("#start-button");
@@ -12,7 +12,7 @@ const angleText = document.querySelector("#angle");
 const feedbackText = document.querySelector("#feedback");
 
 let poseLandmarker;
-let wasStraight = null;
+let lastState = null;
 
 async function loadPoseModel() {
   const vision = await FilesetResolver.forVisionTasks(
@@ -27,6 +27,17 @@ async function loadPoseModel() {
     runningMode: "VIDEO",
     numPoses: 1,
   });
+}
+
+// Shows and speaks feedback. Speaks only when the state changes.
+function giveFeedback(state, text, spokenText) {
+  feedbackText.textContent = text;
+  if (state !== lastState) {
+    const spoken = speak(spokenText);
+    if (spoken) {
+      lastState = state;
+    }
+  }
 }
 
 function detectPose() {
@@ -62,21 +73,24 @@ function detectPose() {
       const elbowAngle = calculateAngle(landmarks[11], landmarks[13], landmarks[15]);
       angleText.textContent = `Left elbow: ${Math.round(elbowAngle)}°`;
 
-      // Check the body line rule and show feedback
-      const bodyLine = checkBodyLine(landmarks);
-      if (bodyLine.isStraight) {
-        feedbackText.textContent = `Great body line! (${Math.round(bodyLine.angle)}°)`;
-      } else {
-        feedbackText.textContent = `Keep your body in one line (${Math.round(bodyLine.angle)}°)`;
-      }
-
-      // Speak only when the state changes
-      if (bodyLine.isStraight !== wasStraight) {
-        const spoken = speak(
-          bodyLine.isStraight ? "Great body line." : "Keep your body in one line."
+      // Only judge the body line when the user is in plank position
+      if (!isInPlankPosition(landmarks, canvas.width, canvas.height)) {
+        giveFeedback(
+          "not_ready",
+          "Get into plank position, side on to the camera.",
+          "Get into plank position, side on to the camera."
         );
-        if (spoken) {
-          wasStraight = bodyLine.isStraight;
+      } else {
+        const bodyLine = checkBodyLine(landmarks);
+        const degrees = Math.round(bodyLine.angle);
+        if (bodyLine.isStraight) {
+          giveFeedback("straight", `Great body line! (${degrees}°)`, "Great body line.");
+        } else {
+          giveFeedback(
+            "bent",
+            `Keep your body in one line (${degrees}°)`,
+            "Keep your body in one line."
+          );
         }
       }
     }
