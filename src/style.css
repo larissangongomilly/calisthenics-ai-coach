@@ -275,3 +275,24 @@ dialog button[value="hide"] {
   font-size: 13px;
   font-weight: 600;
 }
+
+#skill-box {
+  margin-bottom: 20px;
+}
+
+#skill-box h2 {
+  margin: 0 0 4px;
+}
+
+.skill-start {
+  margin-top: 10px;
+  height: 40px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+dialog button.secondary-button {
+  background: transparent;
+  color: #f2f4f7;
+  border: 1px solid #2a2f3a;
+}

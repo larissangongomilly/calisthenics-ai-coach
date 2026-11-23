@@ -31,7 +31,7 @@ function skillStatus(skill) {
   return { text: "Not started", type: "new" };
 }
 
-function renderSkill(skill, levelUnlocked) {
+function renderSkill(skill, levelUnlocked, onStart) {
   const card = element("li", "skill-card");
   if (!levelUnlocked) {
     card.classList.add("is-locked");
@@ -62,10 +62,17 @@ function renderSkill(skill, levelUnlocked) {
     card.append(list);
   }
 
+  if (skill.evaluable) {
+    const button = element("button", "skill-start", "Train this skill");
+    button.addEventListener("click", () => onStart(skill));
+    card.append(button);
+  }
+
   return card;
 }
 
-export function renderSkillPath(container, progress) {
+// onStart(skill) is called when the user taps "Train this skill".
+export function renderSkillPath(container, progress, onStart) {
   container.replaceChildren();
 
   for (const level of getSkillPath(progress)) {
@@ -93,7 +100,7 @@ export function renderSkillPath(container, progress) {
 
     const list = element("ul", "skill-list");
     for (const skill of level.skills) {
-      list.append(renderSkill(skill, level.unlocked));
+      list.append(renderSkill(skill, level.unlocked, onStart));
     }
     details.append(list);
     container.append(details);

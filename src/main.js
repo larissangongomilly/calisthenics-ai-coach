@@ -6,6 +6,8 @@ import { speak } from "./voice.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
 import { renderSkillPath } from "./path-screen.js";
+import { isLevelUnlocked } from "./path.js";
+import { CAMERA_VIEWS, getSkill } from "./skills.js";
 
 const trainingScreen = document.querySelector("#training-screen");
 const resultsScreen = document.querySelector("#results-screen");
@@ -35,11 +37,17 @@ const summaryScore = document.querySelector("#summary-score");
 const summaryErrors = document.querySelector("#summary-errors");
 const summaryProgress = document.querySelector("#summary-progress");
 const summaryStreak = document.querySelector("#summary-streak");
+const skillTitle = document.querySelector("#skill-title");
+const skillCamera = document.querySelector("#skill-camera");
+const skillCue = document.querySelector("#skill-cue");
+const hintDialog = document.querySelector("#hint-dialog");
+const hintTitle = document.querySelector("#hint-title");
+const hintText = document.querySelector("#hint-text");
 
 const SAFETY_KEY = "safetyNoticeHidden";
 const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
 
-let currentSkillId = "push-up"; // Only the push-up is evaluable for now.
+let currentSkillId = "push-up";
 let exercise = getExercise(currentSkillId);
 let tracker = createTracker(exercise);
 
@@ -364,13 +372,64 @@ function showSkillPath() {
   stateBeforePath = uiState;
   const progress = loadProgress();
   pathStreak.textContent = describeStreak(getStreak(progress.practiceDays));
-  renderSkillPath(pathLevels, progress);
+  renderSkillPath(pathLevels, progress, chooseSkill);
   setUiState("path");
   window.scrollTo(0, 0);
 }
 
 function closeSkillPath() {
   setUiState(stateBeforePath);
+}
+
+// Shows a hint with "Continue" and "Cancel". Resolves to true on "Continue".
+function confirmHint(title, text) {
+  return new Promise((resolve) => {
+    hintDialog.addEventListener("close", () => resolve(hintDialog.returnValue === "continue"), {
+      once: true,
+    });
+    hintTitle.textContent = title;
+    hintText.textContent = text;
+    hintDialog.returnValue = "";
+    hintDialog.showModal();
+  });
+}
+
+// Shows the chosen skill on the training screen.
+function showCurrentSkill() {
+  const skill = getSkill(currentSkillId);
+  skillTitle.textContent = skill.name;
+  skillCamera.textContent = `Camera: ${CAMERA_VIEWS[skill.camera]}`;
+  skillCue.textContent = `Coach cue: “${skill.cue}”`;
+}
+
+// Free choice: any evaluable skill can be trained. Locked levels and
+// coach-only skills show a safety hint first.
+async function chooseSkill(skill) {
+  if (skill.coachRequired) {
+    const ok = await confirmHint(
+      "Coach required",
+      "This skill puts very high load on shoulders and elbows. Only train it with a qualified coach, proper equipment and assistance."
+    );
+    if (!ok) {
+      return;
+    }
+  }
+
+  if (!isLevelUnlocked(loadProgress(), skill.level)) {
+    const ok = await confirmHint(
+      "Not unlocked yet",
+      `This skill is usually trained after level ${skill.level - 1}. Make sure you have the basics first.`
+    );
+    if (!ok) {
+      return;
+    }
+  }
+
+  currentSkillId = skill.id;
+  exercise = getExercise(skill.id);
+  showCurrentSkill();
+  startNewSet();
+  window.scrollTo(0, 0);
 }
 
 safetyLink.addEventListener("click", showSafetyNotice);
@@ -388,4 +447,5 @@ pauseButton.addEventListener("click", () => {
 finishButton.addEventListener("click", finishSet);
 newSetButton.addEventListener("click", startNewSet);
 
+showCurrentSkill();
 setUiState("idle");

@@ -12,6 +12,11 @@
 
       <section id="training-screen">
         <p>Your AI coach for better form.</p>
+        <div id="skill-box">
+          <h2 id="skill-title"></h2>
+          <p id="skill-camera" class="skill-info"></p>
+          <p id="skill-cue" class="skill-info"></p>
+        </div>
         <button id="start-button">Start training</button>
         <p id="message"></p>
 
@@ -75,6 +80,15 @@
         </ul>
         <button value="ok">I understand</button>
         <button value="hide">Don't show this again</button>
+      </form>
+    </dialog>
+
+    <dialog id="hint-dialog">
+      <form method="dialog">
+        <h2 id="hint-title"></h2>
+        <p id="hint-text"></p>
+        <button value="continue">Continue</button>
+        <button value="cancel" class="secondary-button">Cancel</button>
       </form>
     </dialog>
 
