@@ -12,11 +12,51 @@ const ctx = canvas.getContext("2d");
 const angleText = document.querySelector("#angle");
 const feedbackText = document.querySelector("#feedback");
 const repsText = document.querySelector("#reps");
+const safetyDialog = document.querySelector("#safety-dialog");
+const safetyLink = document.querySelector("#safety-link");
+
+const SAFETY_KEY = "safetyNoticeHidden";
 
 let poseLandmarker;
 let lastState = null;
 let lastPartialAt = 0;
 const repCounter = createRepCounter();
+
+// Browser storage can fail (private mode), so every access is wrapped.
+function isSafetyHidden() {
+  try {
+    return localStorage.getItem(SAFETY_KEY) === "true";
+  } catch (error) {
+    return false;
+  }
+}
+
+function hideSafetyForever() {
+  try {
+    localStorage.setItem(SAFETY_KEY, "true");
+  } catch (error) {
+    // Not saved, the notice will simply show again next time.
+  }
+}
+
+// Shows the safety notice. Resolves to true if the user accepted it.
+function showSafetyNotice() {
+  return new Promise((resolve) => {
+    safetyDialog.addEventListener(
+      "close",
+      () => {
+        const choice = safetyDialog.returnValue;
+        if (choice === "hide") {
+          hideSafetyForever();
+        }
+        resolve(choice === "ok" || choice === "hide");
+      },
+      { once: true }
+    );
+    safetyDialog.returnValue = "";
+    safetyDialog.showModal();
+  });
+}
 
 async function loadPoseModel() {
   const vision = await FilesetResolver.forVisionTasks(
@@ -124,7 +164,17 @@ function detectPose() {
   requestAnimationFrame(detectPose);
 }
 
+safetyLink.addEventListener("click", showSafetyNotice);
+
 startButton.addEventListener("click", async () => {
+  // Show the safety notice first, unless the user chose to hide it
+  if (!isSafetyHidden()) {
+    const accepted = await showSafetyNotice();
+    if (!accepted) {
+      return;
+    }
+  }
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user" },

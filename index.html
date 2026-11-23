@@ -19,7 +19,23 @@
       <p id="angle"></p>
       <p id="feedback"></p>
       <p id="reps"></p>
+      <button id="safety-link" class="link-button">Safety info</button>
     </main>
+
+    <dialog id="safety-dialog">
+      <form method="dialog">
+        <h2>Before you start</h2>
+        <ul>
+          <li>Warm up for a few minutes first: shoulders, wrists and core.</li>
+          <li>Stop right away if you feel pain, dizziness or anything unusual.</li>
+          <li>Use a stable, non-slip surface with enough space around you.</li>
+          <li>This app gives general guidance. It does not replace a doctor or a trainer.</li>
+        </ul>
+        <button value="ok">I understand</button>
+        <button value="hide">Don't show this again</button>
+      </form>
+    </dialog>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
