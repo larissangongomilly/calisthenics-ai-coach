@@ -23,7 +23,7 @@ The skill path gives users a clear order from easy to hard skills. Harder skills
 | 4 Advanced | One-leg dragon flag, Tuck human flag | Straight dragon flag negative, Tuck planche, Advanced tuck front lever, Wall handstand push-up | Full dragon flag, Bar muscle-up |
 | 5 Very advanced | One-arm elbow lever, V-sit | Advanced tuck planche, Straddle front lever, Full back lever | Strict ring muscle-up, Free handstand push-up, One-arm push-up |
 | 6 Expert | Straddle planche, Full human flag | Full front lever, Press to handstand | One-arm handstand, One-arm pull-up, Hefesto |
-| 7 Elite | Full planche, Iron cross | Full planche push-up, One-arm front lever | Manna, Maltese, Victorian |
+| 7 Elite | Full planche, Iron cross | Full planche push-up, One-arm front lever, One-arm muscle-up | Manna, Maltese, Victorian |
 
 **Option:** Add *Knee push-up* as its own early skill in level 1. Knee push-ups are currently ignored by the push-up counter.
 
