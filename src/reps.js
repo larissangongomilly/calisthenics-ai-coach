@@ -1,29 +1,26 @@
-const DOWN_ANGLE = 90;
-const UP_ANGLE = 160;
-const START_ANGLE = 140;
-
-// Counts push-up reps from the elbow angle.
-// A full rep goes below 90 degrees and back above 160.
+// Counts reps from one angle (for example the elbow angle).
+// A full rep goes below `down` and back above `up`.
 // If the user comes back up without going low enough, it is a "partial" rep.
-export function createRepCounter() {
+// Default values are the push-up rules: below 90 degrees and back above 160.
+export function createRepCounter({ down = 90, up = 160, start = 140 } = {}) {
   let phase = "up";
   let count = 0;
   let lowest = 180;
 
   return {
-    update(elbowAngle) {
+    update(angle) {
       let event = null;
 
       if (phase === "up") {
-        if (elbowAngle < START_ANGLE) {
+        if (angle < start) {
           phase = "moving";
-          lowest = elbowAngle;
+          lowest = angle;
         }
       } else {
-        lowest = Math.min(lowest, elbowAngle);
-        if (elbowAngle > UP_ANGLE) {
+        lowest = Math.min(lowest, angle);
+        if (angle > up) {
           phase = "up";
-          if (lowest < DOWN_ANGLE) {
+          if (lowest < down) {
             count += 1;
             event = "rep";
           } else {
@@ -32,6 +29,29 @@ export function createRepCounter() {
         }
       }
 
+      return { count, event };
+    },
+  };
+}
+
+// Counts reps that move from one position to another,
+// for example from the hang to the support (muscle-up).
+// update(isStart, isEnd): a rep counts when the user reaches the end
+// position after being in the start position.
+export function createPhaseCounter() {
+  let phase = null;
+  let count = 0;
+
+  return {
+    update(isStart, isEnd) {
+      let event = null;
+      if (isStart) {
+        phase = "start";
+      } else if (isEnd && phase === "start") {
+        phase = "end";
+        count += 1;
+        event = "rep";
+      }
       return { count, event };
     },
   };

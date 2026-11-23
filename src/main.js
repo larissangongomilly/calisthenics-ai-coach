@@ -1,12 +1,11 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
-import { calculateAngle } from "./angles.js";
-import { checkBodyLine, getBodySide, getPositionStatus } from "./rules.js";
-import { createRepCounter } from "./reps.js";
-import { createSession } from "./session.js";
+import { buildPose } from "./pose.js";
+import { getExercise } from "./exercises.js";
+import { createTracker } from "./tracker.js";
+import { speak } from "./voice.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
 import { renderSkillPath } from "./path-screen.js";
-import { speak } from "./voice.js";
 
 const trainingScreen = document.querySelector("#training-screen");
 const resultsScreen = document.querySelector("#results-screen");
@@ -38,7 +37,11 @@ const summaryProgress = document.querySelector("#summary-progress");
 const summaryStreak = document.querySelector("#summary-streak");
 
 const SAFETY_KEY = "safetyNoticeHidden";
-const CURRENT_SKILL = "push-up"; // Only the push-up is evaluable for now.
+const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
+
+let currentSkillId = "push-up"; // Only the push-up is evaluable for now.
+let exercise = getExercise(currentSkillId);
+let tracker = createTracker(exercise);
 
 let poseLandmarker;
 let stream = null;
@@ -48,8 +51,7 @@ let uiState = "idle"; // "idle", "running", "paused", "results" or "path"
 let stateBeforePath = "idle";
 let lastState = null;
 let lastPartialAt = 0;
-let repCounter = createRepCounter();
-let session = createSession();
+let lastAnnouncedHold = 0;
 
 // Shows and hides parts of the page depending on the current state.
 function setUiState(state) {
@@ -164,6 +166,53 @@ function giveFeedback(state, text, spokenText) {
   }
 }
 
+function drawSkeleton(landmarks) {
+  // Draw the bones (lines between joints)
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 3;
+  for (const connection of PoseLandmarker.POSE_CONNECTIONS) {
+    const from = landmarks[connection.start];
+    const to = landmarks[connection.end];
+    ctx.beginPath();
+    ctx.moveTo(from.x * canvas.width, from.y * canvas.height);
+    ctx.lineTo(to.x * canvas.width, to.y * canvas.height);
+    ctx.stroke();
+  }
+
+  // Draw the joints (dots)
+  ctx.fillStyle = "#c6f432";
+  for (const point of landmarks) {
+    ctx.beginPath();
+    ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+
+// Shows reps or hold time and speaks counts.
+function showProgress(result) {
+  if (exercise.measure === "hold") {
+    const seconds = result.holdSeconds;
+    if (seconds > 0 && seconds % HOLD_ANNOUNCE_EVERY === 0 && seconds !== lastAnnouncedHold) {
+      lastAnnouncedHold = seconds;
+      speak(`${seconds} seconds`, { priority: true });
+    }
+    if (seconds === 0) {
+      lastAnnouncedHold = 0;
+    }
+    repsText.textContent = `Hold: ${seconds} s (best ${result.bestHoldSeconds} s)`;
+    return;
+  }
+
+  if (result.event === "rep") {
+    speak(String(result.reps), { priority: true });
+  } else if (result.event === "partial") {
+    lastPartialAt = Date.now();
+    speak(exercise.rep.partialCue ?? "Use the full range.", { priority: true });
+  }
+  const depthHint = Date.now() - lastPartialAt < 3000 ? " - use the full range" : "";
+  repsText.textContent = `Reps: ${result.reps}${depthHint}`;
+}
+
 function detectPose() {
   if (!running) {
     return;
@@ -177,82 +226,15 @@ function detectPose() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const landmarks of result.landmarks) {
-      // Draw the bones (lines between joints)
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 3;
-      for (const connection of PoseLandmarker.POSE_CONNECTIONS) {
-        const from = landmarks[connection.start];
-        const to = landmarks[connection.end];
-        ctx.beginPath();
-        ctx.moveTo(from.x * canvas.width, from.y * canvas.height);
-        ctx.lineTo(to.x * canvas.width, to.y * canvas.height);
-        ctx.stroke();
-      }
+      drawSkeleton(landmarks);
 
-      // Draw the joints (dots)
-      ctx.fillStyle = "#c6f432";
-      for (const point of landmarks) {
-        ctx.beginPath();
-        ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
-        ctx.fill();
-      }
+      const pose = buildPose(landmarks, canvas.width, canvas.height);
+      angleText.textContent = `Tracking ${pose.side.name} side, elbow: ${Math.round(pose.m.elbow)}°`;
 
-      // Pick the body side the camera sees best
-      const side = getBodySide(landmarks);
-
-      // Show the live elbow angle of that side
-      const elbowAngle = calculateAngle(side.shoulder, side.elbow, side.wrist);
-      angleText.textContent = `Tracking ${side.name} side, elbow: ${Math.round(elbowAngle)}°`;
-
-      // Only judge form and count reps in a full plank position
-      const status = getPositionStatus(side, canvas.width, canvas.height);
-
-      if (status === "not_ready") {
-        giveFeedback(
-          "not_ready",
-          "Get into plank position, side on to the camera.",
-          "Get into plank position, side on to the camera."
-        );
-      } else if (status === "knees_bent") {
-        giveFeedback(
-          "knees_bent",
-          "Knees down? This app counts full push-ups. Straighten your legs.",
-          "Straighten your legs for a full push-up."
-        );
-      } else {
-        // Count reps and check depth
-        const reps = repCounter.update(elbowAngle);
-        if (reps.event === "rep") {
-          session.recordRep();
-          speak(String(reps.count), { priority: true });
-        } else if (reps.event === "partial") {
-          session.recordPartialRep();
-          lastPartialAt = Date.now();
-          speak("Go a little lower.", { priority: true });
-        }
-        const depthHint = Date.now() - lastPartialAt < 3000 ? " - go a little lower" : "";
-        repsText.textContent = `Reps: ${reps.count}${depthHint}`;
-
-        // Check the body line and record it for the summary
-        const bodyLine = checkBodyLine(side);
-        session.recordFrame(bodyLine);
-        const degrees = Math.round(bodyLine.angle);
-
-        if (bodyLine.isStraight) {
-          giveFeedback("straight", `Great body line! (${degrees}°)`, "Great body line.");
-        } else if (bodyLine.hipPosition === "sagging") {
-          giveFeedback(
-            "sagging",
-            `Lift your hips a little (${degrees}°)`,
-            "Gently lift your hips."
-          );
-        } else {
-          giveFeedback(
-            "high",
-            `Lower your hips a little (${degrees}°)`,
-            "Lower your hips a little."
-          );
-        }
+      const frame = tracker.update(pose, performance.now());
+      giveFeedback(frame.state, frame.text, frame.spoken);
+      if (frame.inPosition) {
+        showProgress(frame);
       }
     }
   }
@@ -318,15 +300,16 @@ function finishSet() {
   summaryProgress.textContent = "";
   summaryStreak.textContent = describeStreak(getStreak(loadProgress().practiceDays));
 
-  if (!session.hasData()) {
+  if (!tracker.hasData()) {
     summaryReps.textContent = "No set recorded yet.";
-    summaryScore.textContent = "Get into plank position first, then finish your set.";
+    summaryScore.textContent = "Get into the starting position first, then finish your set.";
     setUiState("results");
     return;
   }
 
-  const result = session.summary();
-  summaryReps.textContent = `Reps: ${result.reps}`;
+  const result = tracker.summary();
+  const isHold = exercise.measure === "hold";
+  summaryReps.textContent = isHold ? `Best hold: ${result.seconds} s` : `Reps: ${result.reps}`;
   summaryScore.textContent = `Form score: ${result.score}%`;
 
   if (result.errors.length === 0) {
@@ -342,7 +325,7 @@ function finishSet() {
   }
 
   // Save the set to the user's progress
-  const update = recordSet(loadProgress(), CURRENT_SKILL, result);
+  const update = recordSet(loadProgress(), currentSkillId, result);
   const saved = saveProgress(update.progress);
   if (update.newlyCompleted) {
     summaryProgress.textContent = "Skill completed! Well done.";
@@ -355,20 +338,20 @@ function finishSet() {
   summaryStreak.textContent = describeStreak(getStreak(update.progress.practiceDays));
 
   setUiState("results");
+  const amount = isHold ? `Best hold ${result.seconds} seconds.` : `${result.reps} reps.`;
   const completedText = update.newlyCompleted ? " Skill completed. Well done." : "";
-  speak(
-    `Set finished. ${result.reps} reps. Form score ${result.score} percent.${completedText}`,
-    { priority: true }
-  );
+  speak(`Set finished. ${amount} Form score ${result.score} percent.${completedText}`, {
+    priority: true,
+  });
 }
 
 // Goes back to the start screen with a clean slate.
 function startNewSet() {
   window.speechSynthesis.cancel();
-  session = createSession();
-  repCounter = createRepCounter();
+  tracker = createTracker(exercise);
   lastState = null;
   lastPartialAt = 0;
+  lastAnnouncedHold = 0;
   message.textContent = "";
   angleText.textContent = "";
   feedbackText.textContent = "";
