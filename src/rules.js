@@ -2,12 +2,13 @@ import { calculateAngle } from "./angles.js";
 
 // MediaPipe landmark numbers for each side of the body
 const SIDES = {
-  left: { shoulder: 11, elbow: 13, wrist: 15, hip: 23, ankle: 27 },
-  right: { shoulder: 12, elbow: 14, wrist: 16, hip: 24, ankle: 28 },
+  left: { shoulder: 11, elbow: 13, wrist: 15, hip: 23, knee: 25, ankle: 27 },
+  right: { shoulder: 12, elbow: 14, wrist: 16, hip: 24, knee: 26, ankle: 28 },
 };
 
 const MIN_VISIBILITY = 0.5;
 const SWITCH_MARGIN = 0.15;
+const MIN_KNEE_ANGLE = 150;
 
 let currentSide = "left";
 
@@ -39,6 +40,7 @@ export function getBodySide(landmarks) {
     elbow: landmarks[ids.elbow],
     wrist: landmarks[ids.wrist],
     hip: landmarks[ids.hip],
+    knee: landmarks[ids.knee],
     ankle: landmarks[ids.ankle],
   };
 }
@@ -50,12 +52,15 @@ function angleToHorizontal(a, b, width, height) {
   return (Math.atan2(dy, dx) * 180) / Math.PI;
 }
 
-// Position check: body roughly horizontal, arms roughly vertical (plank / push-up).
-export function isInPlankPosition(side, width, height) {
-  const { shoulder, wrist, hip, ankle } = side;
+// Checks the starting position for a full push-up:
+// "not_ready"  = not in plank position (or body not fully visible)
+// "knees_bent" = in plank, but legs are bent (knee push-up)
+// "ready"      = full plank with straight legs
+export function getPositionStatus(side, width, height) {
+  const { shoulder, wrist, hip, knee, ankle } = side;
 
-  if (![shoulder, wrist, hip, ankle].every(isVisible)) {
-    return false;
+  if (![shoulder, wrist, hip, knee, ankle].every(isVisible)) {
+    return "not_ready";
   }
 
   const bodyTilt = angleToHorizontal(shoulder, ankle, width, height);
@@ -64,7 +69,16 @@ export function isInPlankPosition(side, width, height) {
   const bodyIsHorizontal = bodyTilt <= 30;
   const armsAreVertical = armTilt >= 45 && wrist.y > shoulder.y;
 
-  return bodyIsHorizontal && armsAreVertical;
+  if (!bodyIsHorizontal || !armsAreVertical) {
+    return "not_ready";
+  }
+
+  const kneeAngle = calculateAngle(hip, knee, ankle);
+  if (kneeAngle < MIN_KNEE_ANGLE) {
+    return "knees_bent";
+  }
+
+  return "ready";
 }
 
 // Tells whether the hip is below ("sagging") or above ("high") the

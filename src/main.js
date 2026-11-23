@@ -1,6 +1,6 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
-import { checkBodyLine, getBodySide, isInPlankPosition } from "./rules.js";
+import { checkBodyLine, getBodySide, getPositionStatus } from "./rules.js";
 import { createRepCounter } from "./reps.js";
 import { createSession } from "./session.js";
 import { speak } from "./voice.js";
@@ -166,12 +166,20 @@ function detectPose() {
       const elbowAngle = calculateAngle(side.shoulder, side.elbow, side.wrist);
       angleText.textContent = `Tracking ${side.name} side, elbow: ${Math.round(elbowAngle)}°`;
 
-      // Only judge form and count reps when the user is in plank position
-      if (!isInPlankPosition(side, canvas.width, canvas.height)) {
+      // Only judge form and count reps in a full plank position
+      const status = getPositionStatus(side, canvas.width, canvas.height);
+
+      if (status === "not_ready") {
         giveFeedback(
           "not_ready",
           "Get into plank position, side on to the camera.",
           "Get into plank position, side on to the camera."
+        );
+      } else if (status === "knees_bent") {
+        giveFeedback(
+          "knees_bent",
+          "Knees down? This app counts full push-ups. Straighten your legs.",
+          "Straighten your legs for a full push-up."
         );
       } else {
         // Count reps and check depth
