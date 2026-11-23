@@ -1,6 +1,6 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
-import { checkBodyLine, isInPlankPosition } from "./rules.js";
+import { checkBodyLine, getBodySide, isInPlankPosition } from "./rules.js";
 import { createRepCounter } from "./reps.js";
 import { speak } from "./voice.js";
 
@@ -73,12 +73,15 @@ function detectPose() {
         ctx.fill();
       }
 
-      // Show the live angle of the left elbow
-      const elbowAngle = calculateAngle(landmarks[11], landmarks[13], landmarks[15]);
-      angleText.textContent = `Left elbow: ${Math.round(elbowAngle)}°`;
+      // Pick the body side the camera sees best
+      const side = getBodySide(landmarks);
+
+      // Show the live elbow angle of that side
+      const elbowAngle = calculateAngle(side.shoulder, side.elbow, side.wrist);
+      angleText.textContent = `Tracking ${side.name} side, elbow: ${Math.round(elbowAngle)}°`;
 
       // Only judge form and count reps when the user is in plank position
-      if (!isInPlankPosition(landmarks, canvas.width, canvas.height)) {
+      if (!isInPlankPosition(side, canvas.width, canvas.height)) {
         giveFeedback(
           "not_ready",
           "Get into plank position, side on to the camera.",
@@ -97,7 +100,7 @@ function detectPose() {
         repsText.textContent = `Reps: ${reps.count}${depthHint}`;
 
         // Check the body line
-        const bodyLine = checkBodyLine(landmarks);
+        const bodyLine = checkBodyLine(side);
         const degrees = Math.round(bodyLine.angle);
 
         if (bodyLine.isStraight) {

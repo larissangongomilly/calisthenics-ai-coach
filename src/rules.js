@@ -1,15 +1,46 @@
 import { calculateAngle } from "./angles.js";
 
-// MediaPipe landmark numbers (left side of the body)
-const LEFT_SHOULDER = 11;
-const LEFT_WRIST = 15;
-const LEFT_HIP = 23;
-const LEFT_ANKLE = 27;
+// MediaPipe landmark numbers for each side of the body
+const SIDES = {
+  left: { shoulder: 11, elbow: 13, wrist: 15, hip: 23, ankle: 27 },
+  right: { shoulder: 12, elbow: 14, wrist: 16, hip: 24, ankle: 28 },
+};
 
 const MIN_VISIBILITY = 0.5;
+const SWITCH_MARGIN = 0.15;
+
+let currentSide = "left";
 
 function isVisible(point) {
   return point.visibility === undefined || point.visibility >= MIN_VISIBILITY;
+}
+
+function averageVisibility(landmarks, ids) {
+  const values = Object.values(ids).map((id) => landmarks[id].visibility ?? 0);
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+// Picks the body side that the camera sees better. Only switches when the
+// other side is clearly better, so it does not flicker.
+export function getBodySide(landmarks) {
+  const leftScore = averageVisibility(landmarks, SIDES.left);
+  const rightScore = averageVisibility(landmarks, SIDES.right);
+
+  if (currentSide === "left" && rightScore > leftScore + SWITCH_MARGIN) {
+    currentSide = "right";
+  } else if (currentSide === "right" && leftScore > rightScore + SWITCH_MARGIN) {
+    currentSide = "left";
+  }
+
+  const ids = SIDES[currentSide];
+  return {
+    name: currentSide,
+    shoulder: landmarks[ids.shoulder],
+    elbow: landmarks[ids.elbow],
+    wrist: landmarks[ids.wrist],
+    hip: landmarks[ids.hip],
+    ankle: landmarks[ids.ankle],
+  };
 }
 
 // Angle (0 to 90 degrees) between the line a-b and the horizontal, in pixels.
@@ -20,11 +51,8 @@ function angleToHorizontal(a, b, width, height) {
 }
 
 // Position check: body roughly horizontal, arms roughly vertical (plank / push-up).
-export function isInPlankPosition(landmarks, width, height) {
-  const shoulder = landmarks[LEFT_SHOULDER];
-  const wrist = landmarks[LEFT_WRIST];
-  const hip = landmarks[LEFT_HIP];
-  const ankle = landmarks[LEFT_ANKLE];
+export function isInPlankPosition(side, width, height) {
+  const { shoulder, wrist, hip, ankle } = side;
 
   if (![shoulder, wrist, hip, ankle].every(isVisible)) {
     return false;
@@ -52,10 +80,8 @@ function getHipPosition(shoulder, hip, ankle) {
 }
 
 // Rule: shoulder, hip and ankle should form a straight line.
-export function checkBodyLine(landmarks) {
-  const shoulder = landmarks[LEFT_SHOULDER];
-  const hip = landmarks[LEFT_HIP];
-  const ankle = landmarks[LEFT_ANKLE];
+export function checkBodyLine(side) {
+  const { shoulder, hip, ankle } = side;
 
   const angle = calculateAngle(shoulder, hip, ankle);
   const isStraight = angle >= 160;
