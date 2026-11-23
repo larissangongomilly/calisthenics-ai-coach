@@ -39,12 +39,27 @@ export function isInPlankPosition(landmarks, width, height) {
   return bodyIsHorizontal && armsAreVertical;
 }
 
+// Tells whether the hip is below ("sagging") or above ("high") the
+// straight line from shoulder to ankle. Image y grows downward.
+function getHipPosition(shoulder, hip, ankle) {
+  const run = ankle.x - shoulder.x;
+  if (run === 0) {
+    return "high";
+  }
+  const t = (hip.x - shoulder.x) / run;
+  const lineY = shoulder.y + t * (ankle.y - shoulder.y);
+  return hip.y > lineY ? "sagging" : "high";
+}
+
 // Rule: shoulder, hip and ankle should form a straight line.
 export function checkBodyLine(landmarks) {
-  const angle = calculateAngle(
-    landmarks[LEFT_SHOULDER],
-    landmarks[LEFT_HIP],
-    landmarks[LEFT_ANKLE]
-  );
-  return { angle, isStraight: angle >= 160 };
+  const shoulder = landmarks[LEFT_SHOULDER];
+  const hip = landmarks[LEFT_HIP];
+  const ankle = landmarks[LEFT_ANKLE];
+
+  const angle = calculateAngle(shoulder, hip, ankle);
+  const isStraight = angle >= 160;
+  const hipPosition = isStraight ? "ok" : getHipPosition(shoulder, hip, ankle);
+
+  return { angle, isStraight, hipPosition };
 }

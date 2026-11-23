@@ -83,13 +83,20 @@ function detectPose() {
       } else {
         const bodyLine = checkBodyLine(landmarks);
         const degrees = Math.round(bodyLine.angle);
+
         if (bodyLine.isStraight) {
           giveFeedback("straight", `Great body line! (${degrees}°)`, "Great body line.");
+        } else if (bodyLine.hipPosition === "sagging") {
+          giveFeedback(
+            "sagging",
+            `Lift your hips a little (${degrees}°)`,
+            "Gently lift your hips."
+          );
         } else {
           giveFeedback(
-            "bent",
-            `Keep your body in one line (${degrees}°)`,
-            "Keep your body in one line."
+            "high",
+            `Lower your hips a little (${degrees}°)`,
+            "Lower your hips a little."
           );
         }
       }
