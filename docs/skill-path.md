@@ -99,6 +99,7 @@ Each skill sheet shows the goal, on how many days it was reached, best reps or h
 - Saved per skill: date completed, best reps or seconds, best form score.
 - Saved for the streak: the weeks with practice.
 - If the saved data is missing or broken, the app starts with empty progress instead of crashing.
+- Saved per skill: the last 100 sets (date, reps or seconds, form score, form notes). The Stats tab uses them.
 - **Limitation:** Progress is lost if the user clears the browser data or switches device or browser. Accounts with cloud progress may come later.
 
 ## Open questions
@@ -118,7 +119,11 @@ Before a set, the coach can talk the user into the starting position step by ste
 - Steps the camera can check (hands on the floor, legs straight, a foot in the air) move on as soon as the user does them.
 - Steps the camera cannot see (for example "press your lower back into the floor") move on after a few seconds.
 - The guide is on by default until the user has finished it once for that skill. It can be switched off before the set and skipped during it.
-- Available for level 1 so far: push-up, inverted row, hollow body hold, crow pose. The other skills follow after testing.
+- **Every skill has a guided setup.** Level 1 setups live in `src/exercises.js`, all others in `src/setups.js`.
+- The first step places the camera. Coach skills (hefesto, iron cross, one-arm muscle-up, maltese, victorian) first remind the user to train only with a coach.
+- The last check step uses the skill's own position rule, so the guide ends exactly when the camera rules see the user in position.
+- Harder skills build on easier ones: for example the straddle front lever first guides into the tuck front lever, then opens the legs.
+- All setups are **beta**: they follow the technique guide but are not tested with real people yet.
 
 ## Workouts: sets and rest
 A training is a workout of one skill with several sets (`src/workout.js`):
@@ -127,3 +132,12 @@ A training is a workout of one skill with several sets (`src/workout.js`):
 - During the rest the camera is off. The coach says the result of the set, the rest time, "30 seconds", "10 seconds" and 3-2-1, then the **next set starts by itself**. The rest can be extended by 30 s, skipped or ended.
 - The guided setup only runs before the first set.
 - The summary shows each set, the total reps (or the best hold) and the average form score. The form notes come from the last set, where fatigue shows most.
+
+## Stats tab
+The Stats tab (`src/stats.js`, `src/stats-view.js`) is calculated from the saved sets:
+- **Tiles:** reps and training days this week, total sets, completed skills.
+- **Reps per week:** bars for the last 8 weeks (Monday to Sunday, Berlin). Hold skills count as seconds and show up in the caption.
+- **Training calendar:** the last 6 weeks; the color gets stronger with more sets per day (1–2, 3–5, 6+).
+- **Progress per skill:** reps or seconds of each set (last 20) with the goal as a dashed line.
+- **Personal bests:** best amount and best form per skill, completed skills marked with ✓.
+- Tapping a bar, day or point shows its exact value below the chart.
