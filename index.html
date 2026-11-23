@@ -100,6 +100,54 @@
         <ul id="skill-list" class="skill-list"></ul>
       </section>
 
+      <!-- Stats: training history -->
+      <section id="stats-screen" class="screen tab-screen" hidden>
+        <header class="app-bar">
+          <div>
+            <p class="app-bar-hello">Your training</p>
+            <h1 class="app-bar-title">Stats</h1>
+          </div>
+        </header>
+        <p id="stats-empty" class="settings-card settings-note stats-empty">
+          No sets yet. Finish your first set and your stats show up here.
+        </p>
+        <div id="stats-content">
+          <div id="stats-tiles" class="stats-tiles"></div>
+
+          <h2 class="settings-title">Reps per week</h2>
+          <div class="settings-card">
+            <div id="weekly-chart"></div>
+            <p id="weekly-caption" class="chart-caption"></p>
+          </div>
+
+          <h2 class="settings-title">Training calendar</h2>
+          <div class="settings-card">
+            <div id="calendar"></div>
+            <div class="calendar-legend" aria-hidden="true">
+              <span>Less</span>
+              <span class="calendar-day level-0"></span>
+              <span class="calendar-day level-1"></span>
+              <span class="calendar-day level-2"></span>
+              <span class="calendar-day level-3"></span>
+              <span>More sets</span>
+            </div>
+            <p id="calendar-caption" class="chart-caption"></p>
+          </div>
+
+          <h2 class="settings-title">Progress per skill</h2>
+          <div class="settings-card">
+            <select id="stats-skill" class="text-input select-input" aria-label="Skill"></select>
+            <div id="skill-chart" class="skill-chart"></div>
+            <p id="skill-caption" class="chart-caption"></p>
+          </div>
+
+          <h2 class="settings-title">Personal bests</h2>
+          <div class="settings-card">
+            <ul id="stats-bests" class="history-list"></ul>
+          </div>
+        </div>
+      </section>
+
       <!-- Profile: name and settings -->
       <section id="profile-screen" class="screen tab-screen" hidden>
         <header class="app-bar">
@@ -293,6 +341,14 @@
             <rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor" />
           </svg>
           <span>Skills</span>
+        </button>
+        <button class="tab" data-tab="stats" aria-label="Stats">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <rect x="4" y="12" width="4" height="8" rx="1.5" fill="currentColor" />
+            <rect x="10" y="7" width="4" height="13" rx="1.5" fill="currentColor" />
+            <rect x="16" y="3" width="4" height="17" rx="1.5" fill="currentColor" />
+          </svg>
+          <span>Stats</span>
         </button>
         <button class="tab" data-tab="profile" aria-label="Profile">
           <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">

@@ -11,6 +11,7 @@ import { CAMERA_VIEWS, getSkill } from "./skills.js";
 import { loadName, saveName, cleanName } from "./profile.js";
 import { loadSettings, updateSettings } from "./settings.js";
 import { REST_CALLOUTS, REST_OPTIONS, SET_OPTIONS, createWorkout, describeRest, formatClock } from "./workout.js";
+import { renderStats } from "./stats-view.js";
 import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -20,6 +21,7 @@ const screens = {
   welcome: $("#welcome-screen"),
   home: $("#home-screen"),
   skills: $("#skills-screen"),
+  stats: $("#stats-screen"),
   profile: $("#profile-screen"),
   training: $("#training-screen"),
   results: $("#results-screen"),
@@ -41,6 +43,22 @@ const road = $("#road");
 const skillSearch = $("#skill-search");
 const levelFilter = $("#level-filter");
 const skillList = $("#skill-list");
+
+// Stats
+const statsParts = {
+  empty: $("#stats-empty"),
+  content: $("#stats-content"),
+  tiles: $("#stats-tiles"),
+  weekly: $("#weekly-chart"),
+  weeklyCaption: $("#weekly-caption"),
+  calendar: $("#calendar"),
+  calendarCaption: $("#calendar-caption"),
+  skillSelect: $("#stats-skill"),
+  skillChart: $("#skill-chart"),
+  skillCaption: $("#skill-caption"),
+  bests: $("#stats-bests"),
+};
+const statsState = { skillId: null };
 
 // Profile
 const nameForm = $("#name-form");
@@ -203,7 +221,7 @@ function showScreen(name) {
   for (const [key, section] of Object.entries(screens)) {
     section.hidden = key !== name;
   }
-  tabBar.hidden = !["home", "skills", "profile"].includes(name);
+  tabBar.hidden = !["home", "skills", "stats", "profile"].includes(name);
   for (const tab of tabs) {
     tab.classList.toggle("is-active", tab.dataset.tab === name);
   }
@@ -237,6 +255,9 @@ function showTab(tab) {
   } else if (tab === "skills") {
     renderSkills();
     showScreen("skills");
+  } else if (tab === "stats") {
+    renderStats(statsParts, loadProgress(), statsState);
+    showScreen("stats");
   } else {
     renderProfile();
     showScreen("profile");

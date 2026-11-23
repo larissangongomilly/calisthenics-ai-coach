@@ -6,7 +6,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Turns "YYYY-MM-DD" into a week number. Week numbers go up by 1 every Monday.
 // The date string is already a Berlin calendar day, so plain UTC math is safe here.
-function weekNumber(day) {
+export function weekNumber(day) {
   const daysSince1970 = Math.round(Date.parse(`${day}T00:00:00Z`) / DAY_MS);
   // 1 January 1970 was a Thursday. Shifting by 3 days makes weeks start on Monday.
   return Math.floor((daysSince1970 + 3) / 7);

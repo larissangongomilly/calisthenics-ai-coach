@@ -28,7 +28,7 @@ function isDay(value) {
 }
 
 // How many sets per skill are kept in the history (oldest are dropped).
-export const MAX_HISTORY = 20;
+export const MAX_HISTORY = 100;
 
 // One saved set: { date, reps, seconds, score, notes[] }
 function cleanSet(set) {

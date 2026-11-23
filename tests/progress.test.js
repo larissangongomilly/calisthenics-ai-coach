@@ -98,7 +98,7 @@ test("sets are saved with notes and the history is capped", () => {
   const first = progress.skills["push-up"].history[0];
   assert.equal(first.reps, 4);
   assert.deepEqual(first.notes, ["Hips sagged (20% of the set)"]);
-  for (let i = 0; i < 30; i += 1) {
+  for (let i = 0; i < MAX_HISTORY + 10; i += 1) {
     progress = recordSet(progress, "push-up", { reps: 1, score: 50, errors: [] }, DAY_2).progress;
   }
   assert.equal(progress.skills["push-up"].history.length, MAX_HISTORY);
