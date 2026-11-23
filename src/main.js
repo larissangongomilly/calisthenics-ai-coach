@@ -381,12 +381,20 @@ function closeSkillPath() {
   setUiState(stateBeforePath);
 }
 
+// Only one hint can wait for an answer at a time. One shared "close"
+// listener answers it, so an old dialog can never answer a newer one.
+let resolveHint = null;
+hintDialog.addEventListener("close", () => {
+  const resolve = resolveHint;
+  resolveHint = null;
+  resolve?.(hintDialog.returnValue === "continue");
+});
+
 // Shows a hint with "Continue" and "Cancel". Resolves to true on "Continue".
 function confirmHint(title, text) {
   return new Promise((resolve) => {
-    hintDialog.addEventListener("close", () => resolve(hintDialog.returnValue === "continue"), {
-      once: true,
-    });
+    resolveHint?.(false);
+    resolveHint = resolve;
     hintTitle.textContent = title;
     hintText.textContent = text;
     hintDialog.returnValue = "";
