@@ -32,10 +32,23 @@ function detectPose() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const landmarks of result.landmarks) {
+      // Draw the bones (lines between joints)
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 3;
+      for (const connection of PoseLandmarker.POSE_CONNECTIONS) {
+        const from = landmarks[connection.start];
+        const to = landmarks[connection.end];
+        ctx.beginPath();
+        ctx.moveTo(from.x * canvas.width, from.y * canvas.height);
+        ctx.lineTo(to.x * canvas.width, to.y * canvas.height);
+        ctx.stroke();
+      }
+
+      // Draw the joints (dots)
+      ctx.fillStyle = "#c6f432";
       for (const point of landmarks) {
         ctx.beginPath();
         ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "#c6f432";
         ctx.fill();
       }
     }
