@@ -18,7 +18,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range
 - **Form score and summary** after each set, with the most common errors
-- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross, shown as a road you move down step by step
+- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross, shown as a road of outline figures in each pose (each skill gets its own color once you reach it)
 - **Free choice of skills** in the Skills tab (search and level filter), with a safety hint when a skill belongs to a level you have not unlocked yet
 - **Coach warning** for high-risk skills (hefesto, iron cross, one-arm muscle-up, maltese, victorian)
 - **Progress and weekly streak**, saved in your browser
