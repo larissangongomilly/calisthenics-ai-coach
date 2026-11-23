@@ -120,3 +120,13 @@ dialog button[value="hide"] {
 #new-set-button {
   margin-top: 24px;
 }
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.controls #finish-button {
+  margin-top: 0;
+}

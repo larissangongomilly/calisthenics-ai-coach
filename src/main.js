@@ -8,6 +8,7 @@ import { speak } from "./voice.js";
 const trainingScreen = document.querySelector("#training-screen");
 const resultsScreen = document.querySelector("#results-screen");
 const startButton = document.querySelector("#start-button");
+const pauseButton = document.querySelector("#pause-button");
 const finishButton = document.querySelector("#finish-button");
 const newSetButton = document.querySelector("#new-set-button");
 const message = document.querySelector("#message");
@@ -31,6 +32,7 @@ let poseLandmarker;
 let stream = null;
 let running = false;
 let animationId = 0;
+let uiState = "idle"; // "idle", "running", "paused" or "results"
 let lastState = null;
 let lastPartialAt = 0;
 let repCounter = createRepCounter();
@@ -38,10 +40,13 @@ let session = createSession();
 
 // Shows and hides parts of the page depending on the current state.
 function setUiState(state) {
+  uiState = state;
   trainingScreen.hidden = state === "results";
   resultsScreen.hidden = state !== "results";
   startButton.hidden = state !== "idle";
-  finishButton.hidden = state !== "running";
+  pauseButton.hidden = state !== "running" && state !== "paused";
+  finishButton.hidden = pauseButton.hidden;
+  pauseButton.textContent = state === "paused" ? "Resume" : "Pause";
   cameraBox.hidden = state !== "running";
   statsBox.hidden = state === "idle";
 }
@@ -269,6 +274,26 @@ async function startTraining() {
   }
 }
 
+// Pausing turns the camera off. The reps and statistics of the set are kept.
+function pauseTraining() {
+  stopAnalysis();
+  stopCamera();
+  window.speechSynthesis.cancel();
+  message.textContent = "Paused. Tap Resume when you are ready.";
+  setUiState("paused");
+}
+
+async function resumeTraining() {
+  const cameraStarted = await startCamera();
+  if (!cameraStarted) {
+    return;
+  }
+  message.textContent = "";
+  lastState = null;
+  setUiState("running");
+  startAnalysis();
+}
+
 // Ends the set: stops everything, turns the camera off, shows only the results.
 function finishSet() {
   stopAnalysis();
@@ -321,6 +346,13 @@ function startNewSet() {
 
 safetyLink.addEventListener("click", showSafetyNotice);
 startButton.addEventListener("click", startTraining);
+pauseButton.addEventListener("click", () => {
+  if (uiState === "paused") {
+    resumeTraining();
+  } else {
+    pauseTraining();
+  }
+});
 finishButton.addEventListener("click", finishSet);
 newSetButton.addEventListener("click", startNewSet);
 
