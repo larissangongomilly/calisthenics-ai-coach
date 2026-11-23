@@ -1,15 +1,29 @@
 // Draws the app's lists: the home road, the skills list and the skill sheet.
 import { CAMERA_VIEWS, LEVELS, RULES, TRACKS, getCompletionGoal } from "./skills.js";
 import { getSkillPath } from "./path.js";
+import { STATE_COLORS, getSkillColors, renderFigure } from "./figures.js";
+
+// Background colors behind figures (must match the CSS), so the outline works.
+const BG_PAGE = "#0f1115";
+const BG_CARD = "#20242d";
+const BG_SHEET = "#181b22";
+
+// Figure color by state: done = the skill's color, darker; next = the skill's
+// bright color; unlocked = gray; locked = dark gray.
+function figureColor(skill, { unlocked, current }) {
+  if (skill.completed) {
+    return getSkillColors(skill.id).done;
+  }
+  if (current) {
+    return getSkillColors(skill.id).bright;
+  }
+  return unlocked ? STATE_COLORS.open : STATE_COLORS.locked;
+}
 
 // ---------- Icons (inline SVG, so they follow the text color) ----------
 const ICONS = {
   check: '<path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.4" fill="none"/>',
-  star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" fill="currentColor"/>',
-  trophy: '<path d="M7 4h10v4a5 5 0 0 1-10 0zM5 5H3v1.5A3.5 3.5 0 0 0 6.5 10M19 5h2v1.5A3.5 3.5 0 0 1 17.5 10M12 13v4M8 20h8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  reps: '<path d="M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
-  hold: '<circle cx="12" cy="13" r="7.5" stroke="currentColor" stroke-width="2.4" fill="none"/><path d="M12 9.5V13l2.5 1.5M10 2.5h4" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
   chevron: '<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
 };
 
@@ -94,24 +108,25 @@ export function renderRoad(container, progress, onSelect) {
       node.type = "button";
       node.setAttribute("aria-label", `${skill.name}, ${skillStatus(skill)}`);
       const isCurrent = skill.id === currentId;
-      let iconName = skill.track === "C" ? "trophy" : skill.measure;
-
-      if (skill.completed) {
-        node.classList.add("is-done");
-        iconName = "check";
-      } else if (isCurrent) {
-        node.classList.add("is-current");
-        iconName = "star";
-      } else if (level.unlocked) {
-        node.classList.add("is-open");
-      } else {
-        iconName = "lock";
-      }
       if (skill.track === "C") {
         node.classList.add("is-milestone");
       }
-      node.innerHTML = icon(iconName, skill.track === "C" ? 34 : 30);
-      node.addEventListener("click", () => onSelect(skill, level.unlocked));
+
+      const color = figureColor(skill, { unlocked: level.unlocked, current: isCurrent });
+      node.innerHTML = renderFigure(skill.id, color, BG_PAGE);
+
+      // Small badge: check when done, lock when locked
+      if (skill.completed) {
+        const badge = element("span", "node-badge is-done");
+        badge.style.background = getSkillColors(skill.id).done;
+        badge.innerHTML = icon("check", 14);
+        node.append(badge);
+      } else if (!level.unlocked) {
+        const badge = element("span", "node-badge is-locked");
+        badge.innerHTML = icon("lock", 14);
+        node.append(badge);
+      }
+      node.addEventListener("click", () => onSelect(skill, level.unlocked, isCurrent));
 
       if (isCurrent) {
         step.classList.add("has-bubble");
@@ -152,15 +167,14 @@ export function renderSkillList(container, progress, filter, onSelect) {
       const row = element("button", "skill-row");
       row.type = "button";
 
+      // Mini figure: colored when done, gray otherwise
       const rowIcon = element("span", "row-icon");
-      if (skill.completed) {
-        rowIcon.classList.add("is-done");
-        rowIcon.innerHTML = icon("check", 24);
-      } else if (!level.unlocked) {
-        rowIcon.classList.add("is-locked");
-        rowIcon.innerHTML = icon("lock", 22);
-      } else {
-        rowIcon.innerHTML = icon(skill.measure, 24);
+      const color = figureColor(skill, { unlocked: level.unlocked, current: false });
+      rowIcon.innerHTML = renderFigure(skill.id, color, BG_CARD);
+      if (!level.unlocked) {
+        const badge = element("span", "row-badge");
+        badge.innerHTML = icon("lock", 12);
+        rowIcon.append(badge);
       }
 
       const text = element("span", "row-text");
@@ -206,7 +220,10 @@ export function renderLevelChips(container, activeLevel, onChange) {
 }
 
 // ---------- Skill sheet ----------
-export function fillSkillSheet(parts, skill, levelUnlocked) {
+export function fillSkillSheet(parts, skill, levelUnlocked, isCurrent = false) {
+  const color = figureColor(skill, { unlocked: levelUnlocked, current: isCurrent });
+  parts.figure.innerHTML = renderFigure(skill.id, color, BG_SHEET);
+
   const levelName = LEVELS.find((l) => l.level === skill.level)?.name ?? "";
   parts.meta.textContent = `Level ${skill.level} · ${levelName} · ${TRACKS[skill.track]}${skill.beta ? " · Beta" : ""}`;
   parts.title.textContent = skill.name;

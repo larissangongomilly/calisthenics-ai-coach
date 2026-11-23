@@ -291,62 +291,58 @@ p {
 }
 
 .road-step.has-bubble {
-  margin-top: 56px;
+  margin-top: 30px;
+}
+
+.road-step.has-bubble .start-bubble {
+  top: -24px;
+  z-index: 1;
 }
 
 .node {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: 76px;
-  height: 70px;
+  display: block;
+  width: 96px;
+  height: 96px;
+  padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: var(--locked);
-  color: #5c6473;
-  box-shadow: 0 7px 0 var(--locked-dark);
+  background: transparent;
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transition: transform 0.1s ease;
 }
 
 .node:active {
-  transform: translateY(5px);
-  box-shadow: 0 2px 0 var(--locked-dark);
-}
-
-.node.is-open {
-  background: var(--surface-2);
-  color: var(--accent);
-  box-shadow: 0 7px 0 #14171d;
-}
-
-.node.is-current,
-.node.is-done {
-  background: var(--accent);
-  color: var(--on-accent);
-  box-shadow: 0 7px 0 var(--accent-dark);
-}
-
-.node.is-current:active,
-.node.is-done:active {
-  box-shadow: 0 2px 0 var(--accent-dark);
+  transform: scale(0.94);
 }
 
 .node.is-milestone {
-  width: 86px;
-  height: 80px;
+  width: 112px;
+  height: 112px;
 }
 
-.node.is-current::after {
-  content: "";
+.node svg {
+  display: block;
+}
+
+.node-badge {
   position: absolute;
-  inset: -9px;
-  border: 4px solid var(--accent-soft);
+  right: -2px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
+  color: var(--bg);
+}
+
+.node-badge.is-locked {
+  background: var(--locked);
+  color: #6b7280;
 }
 
 .node-label {
-  margin-top: 14px;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
@@ -466,23 +462,28 @@ p {
 }
 
 .row-icon {
-  display: grid;
+  position: relative;
+  display: block;
   flex: none;
-  place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
+  padding: 2px;
   border-radius: 14px;
   background: var(--surface-2);
-  color: var(--accent);
 }
 
-.row-icon.is-done {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.row-icon.is-locked {
-  color: #5c6473;
+.row-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--locked);
+  color: #6b7280;
 }
 
 .row-text {
@@ -1007,4 +1008,11 @@ dialog::backdrop {
   color: var(--accent);
   font-size: 14px;
   font-weight: 700;
+}
+
+.sheet-figure {
+  align-self: center;
+  width: 140px;
+  height: 140px;
+  margin: -6px 0 6px;
 }

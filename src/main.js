@@ -41,6 +41,7 @@ const skillList = $("#skill-list");
 // Skill sheet
 const sheet = $("#skill-sheet");
 const sheetParts = {
+  figure: $("#sheet-figure"),
   meta: $("#sheet-meta"),
   title: $("#sheet-title"),
   status: $("#sheet-status"),
@@ -238,9 +239,9 @@ function confirmHint(title, text) {
 
 let sheetSkill = null;
 
-function openSkillSheet(skill, levelUnlocked) {
+function openSkillSheet(skill, levelUnlocked, isCurrent = false) {
   sheetSkill = skill;
-  fillSkillSheet(sheetParts, skill, levelUnlocked);
+  fillSkillSheet(sheetParts, skill, levelUnlocked, isCurrent);
   sheet.returnValue = "";
   sheet.showModal();
 }
