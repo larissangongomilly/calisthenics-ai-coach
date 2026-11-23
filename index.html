@@ -100,6 +100,77 @@
         <ul id="skill-list" class="skill-list"></ul>
       </section>
 
+      <!-- Profile: name and settings -->
+      <section id="profile-screen" class="screen tab-screen" hidden>
+        <header class="app-bar">
+          <div>
+            <p class="app-bar-hello">Settings</p>
+            <h1 class="app-bar-title">Profile</h1>
+          </div>
+        </header>
+
+        <form id="name-form" class="settings-card">
+          <label for="profile-name" class="field-label">Your name</label>
+          <div class="input-row">
+            <input id="profile-name" class="text-input" type="text" autocomplete="given-name" maxlength="30" required />
+            <button type="submit" class="button button-secondary">Save</button>
+          </div>
+          <p id="name-saved" class="settings-note" hidden>Saved.</p>
+        </form>
+
+        <h2 class="settings-title">Coach voice</h2>
+        <div class="settings-card">
+          <label class="toggle-row toggle-row-flat">
+            <span>
+              <span class="toggle-title">Spoken coaching</span>
+              <span class="toggle-text">Cues, rep counts and hold times</span>
+            </span>
+            <input id="voice-toggle" type="checkbox" class="toggle" />
+          </label>
+          <label for="volume-range" class="field-label settings-label">Volume</label>
+          <input id="volume-range" class="range" type="range" min="0.2" max="1" step="0.1" />
+          <button id="test-voice" type="button" class="button button-secondary button-block">Test voice</button>
+        </div>
+
+        <h2 class="settings-title">Camera</h2>
+        <div class="settings-card">
+          <div id="camera-choice" class="segmented" role="radiogroup" aria-label="Camera">
+            <button type="button" class="chip" data-camera="user" role="radio">Front</button>
+            <button type="button" class="chip" data-camera="environment" role="radio">Back</button>
+          </div>
+          <p class="settings-note">
+            The back camera usually has a better picture when your phone stands a few meters away.
+            You won't see the screen while training, so the voice tells you everything.
+          </p>
+        </div>
+
+        <div id="install-section">
+          <h2 class="settings-title">Install the app</h2>
+          <div class="settings-card">
+            <p class="settings-note settings-note-first">
+              Add the coach to your home screen. It opens full screen like a normal app and works
+              without internet once the model has loaded.
+            </p>
+            <p class="settings-note"><strong>iPhone:</strong> in Safari tap Share, then "Add to Home Screen".</p>
+            <p class="settings-note"><strong>Android:</strong> open the Chrome menu, then "Install app".</p>
+            <button id="install-button" type="button" class="button button-primary button-block" hidden>Install app</button>
+          </div>
+        </div>
+
+        <h2 class="settings-title">Help</h2>
+        <div class="settings-card">
+          <button id="reset-guides" type="button" class="button button-secondary button-block button-first">Guide me into every pose again</button>
+          <button id="reset-safety" type="button" class="button button-secondary button-block">Show the safety notice again</button>
+          <p id="help-saved" class="settings-note" hidden>Done.</p>
+        </div>
+
+        <h2 class="settings-title">Your data</h2>
+        <div class="settings-card">
+          <p class="settings-note settings-note-first">Your name, progress and settings are stored only on this device.</p>
+          <button id="reset-progress" type="button" class="button button-danger button-block">Reset all progress</button>
+        </div>
+      </section>
+
       <!-- Training: full screen, no tab bar -->
       <section id="training-screen" class="screen full-screen" hidden>
         <header class="top-bar">
@@ -199,6 +270,13 @@
             <rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor" />
           </svg>
           <span>Skills</span>
+        </button>
+        <button class="tab" data-tab="profile" aria-label="Profile">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="currentColor" />
+            <path d="M4 20a8 8 0 0 1 16 0z" fill="currentColor" />
+          </svg>
+          <span>Profile</span>
         </button>
       </nav>
     </div>

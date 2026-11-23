@@ -1096,3 +1096,81 @@ dialog::backdrop {
   border-radius: 50%;
   background: var(--locked);
 }
+
+/* ---------- Profile and settings ---------- */
+.settings-title {
+  margin: 28px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.settings-card {
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+#name-form {
+  margin-top: 8px;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.input-row .button {
+  flex: none;
+}
+
+.settings-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.settings-note-first {
+  margin-top: 0;
+}
+
+.settings-label {
+  margin-top: 18px;
+}
+
+.toggle-row-flat {
+  margin: 0;
+  padding: 0;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.segmented {
+  display: flex;
+  gap: 8px;
+}
+
+.segmented .chip {
+  flex: 1;
+}
+
+.button-first {
+  margin-top: 0;
+}
+
+.button-danger {
+  background: transparent;
+  color: #ff6b6b;
+  box-shadow: inset 0 0 0 2px #4a2a2e;
+}
+
+/* The back camera is not mirrored, the front camera is (like a mirror). */
+.camera-box.is-back {
+  transform: none;
+}

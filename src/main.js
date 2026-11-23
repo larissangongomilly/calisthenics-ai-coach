@@ -3,12 +3,13 @@ import { buildPose } from "./pose.js";
 import { getExercise } from "./exercises.js";
 import { createTracker } from "./tracker.js";
 import { createGuide } from "./guide.js";
-import { speak } from "./voice.js";
-import { loadProgress, recordSet, saveProgress } from "./progress.js";
+import { setVoiceOptions, speak } from "./voice.js";
+import { createEmptyProgress, loadProgress, recordSet, saveProgress } from "./progress.js";
 import { describeStreak, getStreak } from "./streak.js";
 import { isLevelUnlocked } from "./path.js";
 import { CAMERA_VIEWS, getSkill } from "./skills.js";
 import { loadName, saveName, cleanName } from "./profile.js";
+import { loadSettings, updateSettings } from "./settings.js";
 import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -18,6 +19,7 @@ const screens = {
   welcome: $("#welcome-screen"),
   home: $("#home-screen"),
   skills: $("#skills-screen"),
+  profile: $("#profile-screen"),
   training: $("#training-screen"),
   results: $("#results-screen"),
 };
@@ -38,6 +40,21 @@ const road = $("#road");
 const skillSearch = $("#skill-search");
 const levelFilter = $("#level-filter");
 const skillList = $("#skill-list");
+
+// Profile
+const nameForm = $("#name-form");
+const profileName = $("#profile-name");
+const nameSaved = $("#name-saved");
+const voiceToggle = $("#voice-toggle");
+const volumeRange = $("#volume-range");
+const testVoiceButton = $("#test-voice");
+const cameraChoice = $("#camera-choice");
+const installSection = $("#install-section");
+const installButton = $("#install-button");
+const resetGuidesButton = $("#reset-guides");
+const resetSafetyButton = $("#reset-safety");
+const helpSaved = $("#help-saved");
+const resetProgressButton = $("#reset-progress");
 
 // Skill sheet
 const sheet = $("#skill-sheet");
@@ -108,6 +125,9 @@ const GUIDE_SEEN_KEY = "guideSeen"; // Skills whose guided setup the user has fi
 const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
 
 let userName = loadName();
+let settings = loadSettings();
+setVoiceOptions(settings);
+let installPrompt = null; // Android/Chrome install prompt, if the browser offers one
 let activeTab = "home";
 let skillFilter = { level: null, query: "" };
 
@@ -161,7 +181,7 @@ function showScreen(name) {
   for (const [key, section] of Object.entries(screens)) {
     section.hidden = key !== name;
   }
-  tabBar.hidden = name !== "home" && name !== "skills";
+  tabBar.hidden = !["home", "skills", "profile"].includes(name);
   for (const tab of tabs) {
     tab.classList.toggle("is-active", tab.dataset.tab === name);
   }
@@ -192,9 +212,12 @@ function showTab(tab) {
     showScreen("home");
     // Scroll the next skill into view, like opening a map at your position.
     currentStep?.scrollIntoView({ block: "center" });
-  } else {
+  } else if (tab === "skills") {
     renderSkills();
     showScreen("skills");
+  } else {
+    renderProfile();
+    showScreen("profile");
   }
 }
 
@@ -210,6 +233,68 @@ function finishWelcome(event) {
   userName = name;
   saveName(name); // If saving fails, the name is kept until the app is closed.
   showTab("home");
+}
+
+// ---------- Profile and settings ----------
+
+function isInstalled() {
+  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+}
+
+function renderProfile() {
+  profileName.value = userName;
+  nameSaved.hidden = true;
+  helpSaved.hidden = true;
+  voiceToggle.checked = settings.voice;
+  volumeRange.value = String(settings.volume);
+  volumeRange.disabled = !settings.voice;
+  testVoiceButton.disabled = !settings.voice;
+  for (const button of cameraChoice.querySelectorAll("[data-camera]")) {
+    const active = button.dataset.camera === settings.camera;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-checked", String(active));
+  }
+  installSection.hidden = isInstalled();
+  installButton.hidden = !installPrompt;
+}
+
+function changeSettings(changes) {
+  settings = updateSettings(changes);
+  setVoiceOptions(settings);
+  renderProfile();
+}
+
+function saveProfileName(event) {
+  event.preventDefault();
+  const name = cleanName(profileName.value);
+  if (!name) {
+    profileName.focus();
+    return;
+  }
+  userName = name;
+  saveName(name);
+  profileName.value = name;
+  nameSaved.hidden = false;
+}
+
+function forget(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    // Storage blocked: nothing was stored either.
+  }
+  helpSaved.hidden = false;
+}
+
+async function resetProgress() {
+  const ok = await confirmHint(
+    "Reset all progress?",
+    "All sets, goals, completed skills and your streak will be deleted. This cannot be undone."
+  );
+  if (ok) {
+    saveProgress(createEmptyProgress());
+    showTab("home");
+  }
 }
 
 // ---------- Browser storage for the safety notice ----------
@@ -380,10 +465,11 @@ async function loadPoseModel() {
 async function startCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
+      video: { facingMode: settings.camera },
       audio: false,
     });
     video.srcObject = stream;
+    cameraBox.classList.toggle("is-back", settings.camera === "environment");
     return true;
   } catch (error) {
     message.textContent = "Could not access the camera. Please allow camera access.";
@@ -680,6 +766,40 @@ newSetButton.addEventListener("click", () => openTraining(currentSkillId));
 doneButton.addEventListener("click", () => {
   window.speechSynthesis.cancel();
   showTab(activeTab);
+});
+
+nameForm.addEventListener("submit", saveProfileName);
+voiceToggle.addEventListener("change", () => changeSettings({ voice: voiceToggle.checked }));
+volumeRange.addEventListener("change", () => changeSettings({ volume: Number(volumeRange.value) }));
+testVoiceButton.addEventListener("click", () => {
+  speak(userName ? `Hi ${userName}. Ready when you are.` : "Ready when you are.", { priority: true });
+});
+cameraChoice.addEventListener("click", (event) => {
+  const camera = event.target.closest("[data-camera]")?.dataset.camera;
+  if (camera) {
+    changeSettings({ camera });
+  }
+});
+resetGuidesButton.addEventListener("click", () => forget(GUIDE_SEEN_KEY));
+resetSafetyButton.addEventListener("click", () => forget(SAFETY_KEY));
+resetProgressButton.addEventListener("click", resetProgress);
+
+// Android/Chrome: keep the install prompt for the "Install app" button.
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  installPrompt = event;
+  if (activeTab === "profile") {
+    renderProfile();
+  }
+});
+installButton.addEventListener("click", async () => {
+  if (!installPrompt) {
+    return;
+  }
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  renderProfile();
 });
 
 // ---------- Start ----------
