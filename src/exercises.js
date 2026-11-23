@@ -16,22 +16,10 @@
 // Pose values (see pose.js): pose.side has joints in pixels (y grows downward),
 // pose.m has angles in degrees. Tilt angles are 0 (horizontal) to 90 (vertical).
 import { checkBodyLine, getPositionStatus } from "./rules.js";
+import { feetUp, hanging, handsAboveHips, hipsOverShoulders, onHands, upsideDown } from "./pose-checks.js";
+import { addSetups } from "./setups.js";
 
 // ---------- Small helpers ----------
-
-// Hands below the shoulders (support on the floor, bars or parallettes)
-const onHands = (p) => p.side.wrist.y > p.side.shoulder.y;
-// Hands above the shoulders (hanging from a bar or rings)
-const hanging = (p) => p.side.wrist.y < p.side.shoulder.y;
-// Hands above the hips (levers below a bar)
-const handsAboveHips = (p) => p.side.wrist.y < p.side.hip.y;
-// Feet higher than the hands (feet are off the floor in hand balances)
-const feetUp = (p) => p.side.ankle.y < p.side.wrist.y;
-// Upside down: feet above hips above shoulders, hands on the floor
-const upsideDown = (p) =>
-  p.side.ankle.y < p.side.hip.y && p.side.hip.y < p.side.shoulder.y && onHands(p);
-// Hips at least roughly as high as the shoulders (dragon flag on a bench)
-const hipsOverShoulders = (p) => p.side.hip.y <= p.side.shoulder.y + 0.05 * p.height;
 
 // Returns true if every condition holds, otherwise the setup message.
 function inPosition(message, ...conditions) {
@@ -317,6 +305,7 @@ export const EXERCISES = {
     checks: [check("tuck", (p) => p.m.knee <= 110, "Keep your knees pulled in.", "Legs drifted away")],
     goodCue: "Good balance. Keep pressing into the floor.",
     setup: [
+      { say: "Place your phone to your side, so it sees you from head to feet.", check: (p) => p.visible },
       {
         say: "Squat down and place your hands on the floor, shoulder-width apart. Spread your fingers.",
         check: onHands,
@@ -688,6 +677,9 @@ export const EXERCISES = {
 
   victorian: ringsHorizontal("Lift your hips, legs together, rings steady."),
 };
+
+// Guided setups for every skill without its own setup above.
+addSetups(EXERCISES);
 
 export function getExercise(id) {
   return EXERCISES[id] ?? null;
