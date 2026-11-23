@@ -71,6 +71,29 @@ function findCurrentSkillId(levels) {
   return null;
 }
 
+// Progress ring for a level header: fills with done skills, shows "2/4",
+// a check when the level is completed, or a lock when it is locked.
+const RING_RADIUS = 18;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+function progressRing(level) {
+  const share = level.total === 0 ? 0 : level.doneCount / level.total;
+  const filled = (RING_LENGTH * share).toFixed(1);
+  let center;
+  if (!level.unlocked) {
+    center = `<g transform="translate(13 13) scale(0.75)" color="#6b7280">${ICONS.lock}</g>`;
+  } else if (level.completed) {
+    center = `<g transform="translate(10 10)" color="var(--level-color)">${ICONS.check}</g>`;
+  } else {
+    center = `<text x="22" y="26" text-anchor="middle" class="ring-text">${level.doneCount}/${level.total}</text>`;
+  }
+  const arc =
+    share > 0
+      ? `<circle cx="22" cy="22" r="${RING_RADIUS}" fill="none" stroke="var(--level-color)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${filled} ${RING_LENGTH.toFixed(1)}" transform="rotate(-90 22 22)"/>`
+      : "";
+  return `<svg width="44" height="44" viewBox="0 0 44 44" aria-label="${level.doneCount} of ${level.total} skills done"><circle cx="22" cy="22" r="${RING_RADIUS}" fill="none" stroke="#20242d" stroke-width="4"/>${arc}${center}</svg>`;
+}
+
 // Horizontal offsets for the winding road (in px), repeated for every level.
 const ROAD_OFFSETS = [0, 52, 78, 52, 0, -52, -78, -52];
 
@@ -83,29 +106,22 @@ export function renderRoad(container, progress, onSelect) {
   let currentNode = null;
 
   for (const level of levels) {
-    const banner = element("div", "level-banner");
+    // Level header: name on the left, a progress ring on the right.
     const colors = LEVELS.find((l) => l.level === level.level);
+    const header = element("div", "level-header");
     if (!level.unlocked) {
-      banner.classList.add("is-locked");
-    } else if (level.completed) {
-      // Completed level: dark level color, like completed skills
-      banner.classList.add("is-done");
-      banner.style.setProperty("--level-color", colors.dark);
-      banner.style.setProperty("--level-shadow", "#14171d");
-    } else {
-      banner.style.setProperty("--level-color", colors.color);
-      banner.style.setProperty("--level-shadow", colors.dark);
+      header.classList.add("is-locked");
     }
+    header.style.setProperty("--level-color", level.completed ? colors.dark : colors.color);
     const text = element("div");
-    text.append(element("p", "level-kicker", `Level ${level.level}`), element("p", "level-name", level.name));
-    const count = element("span", "level-count");
-    if (level.unlocked) {
-      count.textContent = `${level.doneCount}/${level.total}`;
-    } else {
-      count.innerHTML = icon("lock", 22);
-    }
-    banner.append(text, count);
-    container.append(banner);
+    text.append(
+      element("p", "level-kicker", level.unlocked ? `Level ${level.level}` : `Level ${level.level} · locked`),
+      element("p", "level-name", level.name)
+    );
+    const ring = element("span", "level-ring");
+    ring.innerHTML = progressRing(level);
+    header.append(text, ring);
+    container.append(header);
 
     level.skills.forEach((skill, index) => {
       const offset = ROAD_OFFSETS[index % ROAD_OFFSETS.length];

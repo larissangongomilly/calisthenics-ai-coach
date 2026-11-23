@@ -236,47 +236,47 @@ p {
   margin-top: 20px;
 }
 
-.level-banner {
+.level-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 28px 0 22px;
-  padding: 16px 18px;
-  border-radius: var(--radius);
-  background: var(--level-color, var(--accent));
-  color: var(--on-accent);
-  box-shadow: 0 4px 0 var(--level-shadow, var(--accent-dark));
+  margin: 32px 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
-.level-banner.is-locked {
-  background: var(--locked);
-  color: var(--muted);
-  box-shadow: 0 4px 0 var(--locked-dark);
-}
-
-.level-banner.is-done {
-  color: var(--text);
+.level-header.is-locked {
+  opacity: 0.55;
 }
 
 .level-kicker {
+  color: var(--level-color, var(--accent));
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  opacity: 0.75;
+}
+
+.level-header.is-locked .level-kicker {
+  color: var(--muted);
 }
 
 .level-name {
   margin-top: 2px;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
 }
 
-.level-count {
-  font-size: 15px;
-  font-weight: 800;
-  white-space: nowrap;
+.level-ring svg {
+  display: block;
+}
+
+.ring-text {
+  fill: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .road-step {
