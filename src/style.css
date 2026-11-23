@@ -93,3 +93,23 @@ dialog button[value="hide"] {
   text-decoration: underline;
   cursor: pointer;
 }
+#finish-button {
+  margin-top: 16px;
+}
+
+#summary {
+  margin-top: 24px;
+  padding: 16px 20px;
+  border: 1px solid #2a2f3a;
+  border-radius: 20px;
+  background: #1a1d24;
+}
+
+#summary h2 {
+  margin-top: 0;
+}
+
+#summary ul {
+  padding-left: 20px;
+  line-height: 1.5;
+}

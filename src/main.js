@@ -2,9 +2,11 @@ import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
 import { checkBodyLine, getBodySide, isInPlankPosition } from "./rules.js";
 import { createRepCounter } from "./reps.js";
+import { createSession } from "./session.js";
 import { speak } from "./voice.js";
 
 const startButton = document.querySelector("#start-button");
+const finishButton = document.querySelector("#finish-button");
 const message = document.querySelector("#message");
 const video = document.querySelector("#camera");
 const canvas = document.querySelector("#overlay");
@@ -14,13 +16,18 @@ const feedbackText = document.querySelector("#feedback");
 const repsText = document.querySelector("#reps");
 const safetyDialog = document.querySelector("#safety-dialog");
 const safetyLink = document.querySelector("#safety-link");
+const summaryBox = document.querySelector("#summary");
+const summaryReps = document.querySelector("#summary-reps");
+const summaryScore = document.querySelector("#summary-score");
+const summaryErrors = document.querySelector("#summary-errors");
 
 const SAFETY_KEY = "safetyNoticeHidden";
 
 let poseLandmarker;
 let lastState = null;
 let lastPartialAt = 0;
-const repCounter = createRepCounter();
+let repCounter = createRepCounter();
+let session = createSession();
 
 // Browser storage can fail (private mode), so every access is wrapped.
 function isSafetyHidden() {
@@ -84,6 +91,45 @@ function giveFeedback(state, text, spokenText) {
   }
 }
 
+// Ends the current set: shows the summary, says it out loud, starts fresh.
+function finishSet() {
+  summaryErrors.replaceChildren();
+
+  if (!session.hasData()) {
+    summaryReps.textContent = "No set recorded yet.";
+    summaryScore.textContent = "Get into plank position first, then finish your set.";
+    summaryBox.hidden = false;
+    return;
+  }
+
+  const result = session.summary();
+  summaryReps.textContent = `Reps: ${result.reps}`;
+  summaryScore.textContent = `Form score: ${result.score}%`;
+
+  if (result.errors.length === 0) {
+    const item = document.createElement("li");
+    item.textContent = "No form issues found. Nice work!";
+    summaryErrors.appendChild(item);
+  } else {
+    for (const error of result.errors) {
+      const item = document.createElement("li");
+      item.textContent = error;
+      summaryErrors.appendChild(item);
+    }
+  }
+  summaryBox.hidden = false;
+
+  speak(`Set finished. ${result.reps} reps. Form score ${result.score} percent.`, {
+    priority: true,
+  });
+
+  // Start fresh for the next set
+  session = createSession();
+  repCounter = createRepCounter();
+  repsText.textContent = "Reps: 0";
+  lastState = null;
+}
+
 function detectPose() {
   if (video.videoWidth > 0) {
     canvas.width = video.videoWidth;
@@ -131,16 +177,19 @@ function detectPose() {
         // Count reps and check depth
         const reps = repCounter.update(elbowAngle);
         if (reps.event === "rep") {
+          session.recordRep();
           speak(String(reps.count), { priority: true });
         } else if (reps.event === "partial") {
+          session.recordPartialRep();
           lastPartialAt = Date.now();
           speak("Go a little lower.", { priority: true });
         }
         const depthHint = Date.now() - lastPartialAt < 3000 ? " - go a little lower" : "";
         repsText.textContent = `Reps: ${reps.count}${depthHint}`;
 
-        // Check the body line
+        // Check the body line and record it for the summary
         const bodyLine = checkBodyLine(side);
+        session.recordFrame(bodyLine);
         const degrees = Math.round(bodyLine.angle);
 
         if (bodyLine.isStraight) {
@@ -165,6 +214,7 @@ function detectPose() {
 }
 
 safetyLink.addEventListener("click", showSafetyNotice);
+finishButton.addEventListener("click", finishSet);
 
 startButton.addEventListener("click", async () => {
   // Show the safety notice first, unless the user chose to hide it
