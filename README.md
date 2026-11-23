@@ -5,18 +5,21 @@ An AI coach that watches your calisthenics form through the camera and gives you
 It runs in the browser. There is nothing to install, and **no images or video leave your device**.
 
 <p>
-  <img src="docs/screenshots/start.jpg" alt="Start screen with the chosen skill, camera tip and coach cue" width="280" />
+  <img src="docs/screenshots/welcome.jpg" alt="Welcome screen asking for your name" width="240" />
   &nbsp;
-  <img src="docs/screenshots/skill-path.jpg" alt="Skill path with levels, progress and beta labels" width="280" />
+  <img src="docs/screenshots/home.jpg" alt="Home tab with the skill path: levels and skill nodes from top to bottom" width="240" />
+  &nbsp;
+  <img src="docs/screenshots/skills.jpg" alt="Skills tab with search, level filter and all skills" width="240" />
 </p>
 
 ## Features
+- **Mobile app layout:** welcome screen with your name, a **Home** tab with your path and a **Skills** tab for free training, switched with a bottom tab bar
 - **Live voice and visual feedback** during the exercise (not after it), with a calm, encouraging tone
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range
 - **Form score and summary** after each set, with the most common errors
-- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross
-- **Free choice of skills**, with a safety hint when a skill belongs to a level you have not unlocked yet
+- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross, shown as a road you move down step by step
+- **Free choice of skills** in the Skills tab (search and level filter), with a safety hint when a skill belongs to a level you have not unlocked yet
 - **Coach warning** for high-risk skills (hefesto, iron cross, one-arm muscle-up, maltese, victorian)
 - **Progress and weekly streak**, saved in your browser
 - **Pause and resume** (the camera turns fully off while paused)
@@ -62,6 +65,7 @@ Docs:
 - **Local progress:** Progress lives in your browser. It is lost if you clear your browser data or switch device.
 - **Levels and criteria are preliminary** and not reviewed by calisthenics experts.
 - English only for now.
+- **Web app for now:** it is designed to become an App Store and Play Store app later, but today it runs in the browser.
 
 ## Safety
 This app gives **general guidance only. It does not replace a coach, trainer or doctor.**
