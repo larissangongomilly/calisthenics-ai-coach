@@ -12,7 +12,10 @@
       <p>Your AI coach for better form.</p>
       <button id="start-button">Start training</button>
       <p id="message"></p>
-      <video id="camera" autoplay playsinline muted></video>
+<div class="camera-box">
+  <video id="camera" autoplay playsinline muted></video>
+  <canvas id="overlay"></canvas>
+</div>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>
