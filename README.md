@@ -43,6 +43,8 @@ npm run dev
 
 Open the address that Vite shows (usually `http://localhost:5173`) and allow camera access. The camera only works on `localhost` or over HTTPS.
 
+**Test on your phone (same Wi-Fi):** run `npm run dev:phone` and open the `Network` address it prints (for example `https://192.168.0.10:5173`) on your phone. The dev server uses a self-signed certificate, so the browser shows a security warning once; accept it to continue. HTTPS is needed because browsers only allow the camera on secure pages.
+
 **Tip:** Place the camera so your whole body is visible. Most skills need a side view; each skill card tells you how to film.
 
 ## How it works
