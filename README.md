@@ -13,7 +13,10 @@ It runs in the browser. There is nothing to install, and **no images or video le
 </p>
 
 ## Features
-- **Mobile app layout:** welcome screen with your name, a **Home** tab with your path and a **Skills** tab for free training, switched with a bottom tab bar
+- **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab with settings, switched with a bottom tab bar
+- **Installable app (PWA):** add it to the home screen, it opens full screen and keeps the app and pose model on the device for offline use
+- **Workouts with sets and rest:** pick 1 to 5 sets and a rest time; a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
+- **Settings:** voice on/off and volume, front or back camera, show guides and the safety notice again, reset progress
 - **Live voice and visual feedback** during the exercise (not after it), with a calm, encouraging tone
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range
@@ -49,6 +52,8 @@ Open the address that Vite shows (usually `http://localhost:5173`) and allow cam
 
 **Production build:** `npm run build` creates the app in `dist/`. The test version is hosted on Cloudflare Pages (build command `npm run build`, output folder `dist`) behind Cloudflare Access, so only invited people can open it.
 
+**App icon:** `node scripts/make-icon.mjs` writes the icon SVGs to `public/icons/`. The PNG sizes were made from them on macOS (`qlmanage -t -s 512`, then `sips -z`).
+
 **Tip:** Place the camera so your whole body is visible. Most skills need a side view; each skill card tells you how to film.
 
 ## How it works
@@ -68,6 +73,7 @@ Docs:
 - **Beta rules:** Only the push-up has been tested. The feedback for all other skills may be wrong.
 - **One camera, 2D only:** The app cannot see depth, muscle tension, hand pressure or whether your lower back touches the floor. It also cannot tell whether you face up or down (for example front lever vs. back lever).
 - **Visibility:** Feedback stops when joints are hidden. Loose clothing, low light or a cut-off body make detection worse.
+- **Wake lock:** Keeping the screen on needs a recent browser (iOS 16.4+, current Chrome). On older ones, set the auto-lock time of the phone higher while training.
 - **Local progress:** Progress lives in your browser. It is lost if you clear your browser data or switch device.
 - **Levels and criteria are preliminary** and not reviewed by calisthenics experts.
 - English only for now.

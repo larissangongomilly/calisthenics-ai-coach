@@ -110,7 +110,7 @@ Each skill sheet shows the goal, on how many days it was reached, best reps or h
 Every skill is shown as an outline figure in its pose, with its equipment (`src/figures.js`):
 - **Equipment:** floor (hatched), pull-up bar in a frame, low bar, dip bars, parallettes, bench, wall, pole and rings, so floor and bar skills are easy to tell apart.
 - **Colors by state:** locked = dark gray with a lock, unlocked = gray, next skill ("Start") = the level's bright color, completed = the same color, darker, with a check.
-- **Own color per level:** the level banner and all figures of a level share one color (level 1 lime, 2 teal, 3 blue, 4 violet, 5 pink, 6 orange, 7 gold). The level header shows the level name in its color and a progress ring (done skills / all skills); a completed level shows a check, a locked level a lock.
+- **Own color per level:** the level header and all figures of a level share one color (level 1 lime, 2 teal, 3 blue, 4 violet, 5 pink, 6 orange, 7 gold). The level header shows the level name in its color and a progress ring (done skills / all skills); a completed level shows a check, a locked level a lock.
 - **Overlaps:** only crow pose and frog stand draw the knee in front of the arm, because that detail matters for the technique.
 
 ## Guided setup
@@ -119,3 +119,11 @@ Before a set, the coach can talk the user into the starting position step by ste
 - Steps the camera cannot see (for example "press your lower back into the floor") move on after a few seconds.
 - The guide is on by default until the user has finished it once for that skill. It can be switched off before the set and skipped during it.
 - Available for level 1 so far: push-up, inverted row, hollow body hold, crow pose. The other skills follow after testing.
+
+## Workouts: sets and rest
+A training is a workout of one skill with several sets (`src/workout.js`):
+- Before the start the user picks **1 to 5 sets** (default 3) and a **rest time** of 60 s, 90 s, 2 min or 3 min (default 90 s). The choice is remembered.
+- **Every set is saved on its own** as soon as it ends, with the same goal and completion rules as above. Leaving the workout early keeps the finished sets.
+- During the rest the camera is off. The coach says the result of the set, the rest time, "30 seconds", "10 seconds" and 3-2-1, then the **next set starts by itself**. The rest can be extended by 30 s, skipped or ended.
+- The guided setup only runs before the first set.
+- The summary shows each set, the total reps (or the best hold) and the average form score. The form notes come from the last set, where fatigue shows most.
