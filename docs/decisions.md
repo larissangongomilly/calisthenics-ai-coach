@@ -15,7 +15,7 @@ Key decisions made before building. They keep the project focused and explain th
 - **Metrics:** Reps, hold time, form score, list of errors.
 
 ## Camera and feedback
-- **Camera:** Side view, guided setup for the MVP. Automatic detection later.
+- **Camera:** Side view first. Front view later to check elbows. The coach can ask the user to switch views.
 - **Feedback:** Spoken voice plus visual cues.
 - **Voice:** Browser speech synthesis first.
 - **Tone:** Warm, encouraging, respectful. No slang.
