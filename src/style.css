@@ -1001,3 +1001,10 @@ dialog::backdrop {
   padding: 4px 22px calc(16px + var(--safe-bottom));
   background: var(--surface);
 }
+
+.goal-state {
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}

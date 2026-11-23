@@ -49,6 +49,7 @@ const sheetParts = {
   cue: $("#sheet-cue"),
   milestones: $("#sheet-milestones"),
   goal: $("#sheet-goal"),
+  goalState: $("#sheet-goal-state"),
   empty: $("#sheet-empty"),
   progress: $("#sheet-progress"),
   bestLabel: $("#sheet-best-label"),
@@ -559,6 +560,9 @@ function finishSet() {
   const saved = saveProgress(update.progress);
   if (update.newlyCompleted) {
     summaryProgress.textContent = "Skill completed! Well done.";
+  } else if (update.goalReached) {
+    summaryProgress.textContent =
+      "Goal reached! Reach it again on another day to complete this skill.";
   } else if (update.isPractice) {
     summaryProgress.textContent = "Practice counted for this week.";
   }

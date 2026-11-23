@@ -1,6 +1,6 @@
 // Saves the user's progress in the browser (localStorage). There is no login yet.
 // Limitation: progress is lost if the user clears the browser data.
-import { RULES, getSkill } from "./skills.js";
+import { RULES, getPracticeMinimum, getSkill } from "./skills.js";
 
 const STORAGE_KEY = "progress";
 const VERSION = 1;
@@ -60,6 +60,8 @@ function cleanSkillEntry(entry) {
     bestScore: isNumber(entry.bestScore) ? entry.bestScore : 0,
     lastPracticedAt: typeof entry.lastPracticedAt === "string" ? entry.lastPracticedAt : null,
     history,
+    // Berlin days ("YYYY-MM-DD") on which the goal was reached
+    goalDays: Array.isArray(entry.goalDays) ? [...new Set(entry.goalDays.filter(isDay))].sort() : [],
   };
 }
 
@@ -107,30 +109,32 @@ export function saveProgress(progress, storage = globalThis.localStorage) {
 // Updates the progress with the result of one set.
 // result: { reps, seconds, score, errors } (score in percent, reps = clean reps,
 // errors = form notes from the tracker summary).
-// Returns { progress, isPractice, newlyCompleted }. Does not save by itself.
+// Returns { progress, isPractice, goalReached, goalDaysCount, newlyCompleted }.
+// Does not save by itself.
 export function recordSet(progress, skillId, result, now = new Date()) {
   const skill = getSkill(skillId);
   if (!skill) {
-    return { progress, isPractice: false, newlyCompleted: false };
+    return { progress, isPractice: false, goalReached: false, goalDaysCount: 0, newlyCompleted: false };
   }
 
   const reps = isNumber(result.reps) ? result.reps : 0;
   const seconds = isNumber(result.seconds) ? result.seconds : 0;
   const score = isNumber(result.score) ? result.score : 0;
+  const amount = skill.measure === "hold" ? seconds : reps;
+  const today = toBerlinDay(now);
 
-  const isPractice =
-    skill.evaluable &&
-    (reps >= RULES.practice.minCleanReps || seconds >= RULES.practice.minHoldSeconds);
+  // Practice: at least half of the goal (see RULES.practice)
+  const isPractice = skill.evaluable && amount >= getPracticeMinimum(skill);
 
-  const done =
-    skill.measure === "hold"
-      ? seconds >= RULES.holdCompleted.minHoldSeconds &&
-        score >= RULES.holdCompleted.minFormScore
-      : reps >= RULES.skillCompleted.minCleanReps &&
-        score >= RULES.skillCompleted.minFormScore;
+  // Goal: the full goal with good form in this set
+  const goalReached = skill.evaluable && amount >= skill.goal && score >= RULES.goal.minFormScore;
 
   const old = progress.skills[skillId] ?? cleanSkillEntry({});
-  const newlyCompleted = skill.evaluable && done && !old.completedAt;
+  const goalDays = goalReached ? [...new Set([...old.goalDays, today])].sort() : old.goalDays;
+
+  // Completed: goal reached on enough different days
+  const newlyCompleted =
+    !old.completedAt && goalDays.length >= RULES.completion.daysNeeded;
 
   const set = cleanSet({ date: now.toISOString(), reps, seconds, score, notes: result.errors });
 
@@ -141,15 +145,18 @@ export function recordSet(progress, skillId, result, now = new Date()) {
     bestScore: Math.max(old.bestScore, score),
     lastPracticedAt: now.toISOString(),
     history: [...old.history, set].slice(-MAX_HISTORY),
+    goalDays,
   };
 
   const practiceDays = isPractice
-    ? [...new Set([...progress.practiceDays, toBerlinDay(now)])].sort()
+    ? [...new Set([...progress.practiceDays, today])].sort()
     : progress.practiceDays;
 
   return {
     progress: { ...progress, skills: { ...progress.skills, [skillId]: entry }, practiceDays },
     isPractice,
+    goalReached,
+    goalDaysCount: goalDays.length,
     newlyCompleted,
   };
 }

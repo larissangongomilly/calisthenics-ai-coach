@@ -46,16 +46,36 @@ All numbers live in one config file (`src/skills.js`), so they can be changed in
 ### Clean rep
 A rep that the coach counts as complete, in a valid position (plank, not on the knees), without a partial-rep warning.
 
-### Practice (counts for the streak)
-- At least **3 clean reps**, or
-- at least **20 seconds** of holding a hold skill.
+### Goal per skill
+Every skill has its own goal, matched to its difficulty: **clean reps in one set** (reps skills) or **seconds held** (hold skills). The goals are estimates and live in `GOALS` in `src/skills.js`. Two-sided skills (archer push-up, pistol squat, one-arm push-up) count both sides together.
 
-Only evaluable skills can count as practice, because the app cannot check anything else.
+| Level | Reps | Hold |
+|-------|------|------|
+| 1 | Push-up 5 · Inverted row 8 | Hollow body 30 s · Crow 10 s |
+| 2 | Knee raise 8 · Pike push-up 5 · Pull-up 5 · Bar dip 5 | Elbow lever with foot assist 15 s · Tuck L-sit 15 s · Wall handstand 30 s · Frog stand (straight arms) 10 s |
+| 3 | Tuck dragon flag 5 · Archer push-up 6 · Pistol squat 6 | Tuck back lever 10 s · Free elbow lever 10 s · L-sit 10 s · Free handstand 10 s · Tuck front lever 10 s |
+| 4 | One-leg dragon flag 3 · Dragon flag negative 3 · Wall HSPU 3 · Full dragon flag 3 · Bar muscle-up 1 | Tuck human flag 5 s · Tuck planche 10 s · Advanced tuck front lever 10 s |
+| 5 | Ring muscle-up 1 · Free HSPU 1 · One-arm push-up 2 | One-arm elbow lever 5 s · V-sit 5 s · Advanced tuck planche 8 s · Straddle front lever 5 s · Back lever 5 s |
+| 6 | Press to handstand 1 · One-arm pull-up 1 · Hefesto 1 | Straddle planche 5 s · Human flag 5 s · Front lever 5 s · One-arm handstand 3 s |
+| 7 | Planche push-up 1 · One-arm muscle-up 1 | Full planche 3 s · Iron cross 2 s · One-arm front lever 3 s · Manna 3 s · Maltese 2 s · Victorian 2 s |
+
+### Goal reached (one set)
+- At least the skill's goal in **one set** (for holds: the longest unbroken hold), and
+- a **form score of at least 80 %**.
+
+### Practice (counts for the streak)
+- A set counts as practice when it reaches **at least half of the goal** (rounded up, at least 1 rep or 1 second).
+- Example: push-up goal 5 → 3 reps count; hollow body goal 30 s → 15 s count.
+- This way hard skills with short goals (for example a 3 s planche) can count too.
 
 ### Skill completed
-- **5 clean reps in one set** with a **form score of at least 80 %**.
-- Hold skills: rule still open (proposal: hold for 10 s with a form score of at least 80 %).
+- The goal was reached on **2 different days** (Berlin calendar days).
+- Why two days: the beta camera rules can be wrong, and one lucky set should not be enough. Reaching it twice shows the skill is really there.
 - A completed skill stays completed. Better results are saved as a new best.
+- Skills completed with an earlier rule stay completed.
+
+### Progress per skill
+Each skill sheet shows the goal, on how many days it was reached, best reps or hold, best form score, the notes of the last set and the last sets. The last 20 sets per skill are kept.
 
 ### Level completed
 - A level is completed when **all skills of the level** are completed.

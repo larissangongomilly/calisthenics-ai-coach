@@ -4,14 +4,41 @@
 // All rules and numbers live here, so they can be changed in one place.
 
 export const RULES = {
-  // Counts as practice for the weekly streak.
-  practice: { minCleanReps: 3, minHoldSeconds: 20 },
-  // A skill is completed with this many clean reps in one set and this form score.
-  skillCompleted: { minCleanReps: 5, minFormScore: 80 },
-  // Proposal only (open question): completion rule for hold skills.
-  holdCompleted: { minHoldSeconds: 10, minFormScore: 80 },
+  // A set reaches the goal with at least the skill's goal (reps or seconds,
+  // see GOALS) in one set and at least this form score.
+  goal: { minFormScore: 80 },
+  // A skill is completed when the goal was reached on this many different days.
+  completion: { daysNeeded: 2 },
+  // A set counts as practice for the weekly streak when it reaches at least
+  // this share of the goal (at least 1 rep or 1 second).
+  practice: { goalShare: 0.5 },
   // Level 1 is always unlocked. A level unlocks when the one before it is completed.
   firstUnlockedLevel: 1,
+};
+
+// Goal per skill: clean reps in one set (reps skills) or seconds held (hold skills).
+// Estimates, not reviewed by experts. Two-sided skills count both sides together.
+export const GOALS = {
+  // Level 1
+  "push-up": 5, "inverted-row": 8, "hollow-body-hold": 30, "crow-pose": 10,
+  // Level 2
+  "elbow-lever-assisted": 15, "hanging-knee-raise": 8, "tuck-l-sit": 15, "pike-push-up": 5,
+  "wall-handstand": 30, "frog-stand-straight": 10, "pull-up": 5, "bar-dip": 5,
+  // Level 3
+  "tuck-dragon-flag": 5, "tuck-back-lever": 10, "elbow-lever": 10, "l-sit": 10,
+  "archer-push-up": 6, "free-handstand": 10, "tuck-front-lever": 10, "pistol-squat": 6,
+  // Level 4
+  "one-leg-dragon-flag": 3, "tuck-human-flag": 5, "dragon-flag-negative": 3, "tuck-planche": 10,
+  "adv-tuck-front-lever": 10, "wall-handstand-push-up": 3, "dragon-flag": 3, "bar-muscle-up": 1,
+  // Level 5
+  "one-arm-elbow-lever": 5, "v-sit": 5, "adv-tuck-planche": 8, "straddle-front-lever": 5,
+  "back-lever": 5, "ring-muscle-up": 1, "free-handstand-push-up": 1, "one-arm-push-up": 2,
+  // Level 6
+  "straddle-planche": 5, "human-flag": 5, "front-lever": 5, "press-to-handstand": 1,
+  "one-arm-handstand": 3, "one-arm-pull-up": 1, hefesto: 1,
+  // Level 7
+  "full-planche": 3, "iron-cross": 2, "planche-push-up": 1, "one-arm-front-lever": 3,
+  "one-arm-muscle-up": 1, manna: 3, maltese: 2, victorian: 2,
 };
 
 export const TRACKS = {
@@ -54,6 +81,7 @@ function skill(id, name, level, track, measure, camera, cue, extra = {}) {
     measure,
     camera,
     cue,
+    goal: GOALS[id],
     evaluable: true,
     beta: true,
     coachRequired: false,
@@ -199,14 +227,20 @@ export const SKILLS = [
     "Lift your hips, legs together, rings steady.", COACH),
 ];
 
+// Minimum reps or seconds in one set that count as practice for the streak.
+export function getPracticeMinimum(skill) {
+  return Math.max(1, Math.ceil(skill.goal * RULES.practice.goalShare));
+}
+
 // The goal that completes a skill, as shown to the user.
 export function getCompletionGoal(skill) {
-  if (skill.measure === "hold") {
-    const { minHoldSeconds, minFormScore } = RULES.holdCompleted;
-    return `Hold for ${minHoldSeconds} s with at least ${minFormScore}% form`;
-  }
-  const { minCleanReps, minFormScore } = RULES.skillCompleted;
-  return `${minCleanReps} clean reps in one set with at least ${minFormScore}% form`;
+  const { minFormScore } = RULES.goal;
+  const { daysNeeded } = RULES.completion;
+  const amount =
+    skill.measure === "hold"
+      ? `Hold for ${skill.goal} s`
+      : `${skill.goal} clean ${skill.goal === 1 ? "rep" : "reps"} in one set`;
+  return `${amount} with at least ${minFormScore}% form, on ${daysNeeded} different days`;
 }
 
 export function getSkill(id) {

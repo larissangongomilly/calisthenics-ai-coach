@@ -19,6 +19,7 @@ export function getSkillPath(progress) {
         bestScore: entry?.bestScore ?? 0,
         completedAt: entry?.completedAt ?? null,
         history: entry?.history ?? [],
+        goalDays: entry?.goalDays ?? [],
       };
     });
 

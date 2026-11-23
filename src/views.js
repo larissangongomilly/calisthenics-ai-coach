@@ -1,5 +1,5 @@
 // Draws the app's lists: the home road, the skills list and the skill sheet.
-import { CAMERA_VIEWS, LEVELS, TRACKS, getCompletionGoal } from "./skills.js";
+import { CAMERA_VIEWS, LEVELS, RULES, TRACKS, getCompletionGoal } from "./skills.js";
 import { getSkillPath } from "./path.js";
 
 // ---------- Icons (inline SVG, so they follow the text color) ----------
@@ -246,9 +246,14 @@ function formatAmount(skill, set) {
 
 // "Your progress": goal, best values, notes of the last set, last sets.
 function fillSkillProgress(parts, skill) {
-  parts.goal.textContent = skill.completedAt
-    ? `${getCompletionGoal(skill)} ✓ Done on ${DATE_FORMAT.format(new Date(skill.completedAt))}`
-    : getCompletionGoal(skill);
+  parts.goal.textContent = getCompletionGoal(skill);
+  const { daysNeeded } = RULES.completion;
+  if (skill.completedAt) {
+    parts.goalState.textContent = `✓ Completed on ${DATE_FORMAT.format(new Date(skill.completedAt))}`;
+  } else {
+    const days = Math.min(skill.goalDays.length, daysNeeded);
+    parts.goalState.textContent = `Goal reached on ${days} of ${daysNeeded} days`;
+  }
 
   const history = skill.history;
   parts.empty.hidden = history.length > 0;
