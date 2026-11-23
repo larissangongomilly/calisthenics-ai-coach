@@ -15,6 +15,7 @@ const repsText = document.querySelector("#reps");
 
 let poseLandmarker;
 let lastState = null;
+let lastPartialAt = 0;
 const repCounter = createRepCounter();
 
 async function loadPoseModel() {
@@ -84,9 +85,18 @@ function detectPose() {
           "Get into plank position, side on to the camera."
         );
       } else {
+        // Count reps and check depth
         const reps = repCounter.update(elbowAngle);
-        repsText.textContent = `Reps: ${reps.count}`;
+        if (reps.event === "rep") {
+          speak(String(reps.count), { priority: true });
+        } else if (reps.event === "partial") {
+          lastPartialAt = Date.now();
+          speak("Go a little lower.", { priority: true });
+        }
+        const depthHint = Date.now() - lastPartialAt < 3000 ? " - go a little lower" : "";
+        repsText.textContent = `Reps: ${reps.count}${depthHint}`;
 
+        // Check the body line
         const bodyLine = checkBodyLine(landmarks);
         const degrees = Math.round(bodyLine.angle);
 
