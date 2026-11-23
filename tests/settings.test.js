@@ -5,10 +5,9 @@ import { memoryStorage } from "./helpers/fake-pose.js";
 
 test("settings start with defaults and drop bad values", () => {
   assert.deepEqual(loadSettings(memoryStorage()), DEFAULT_SETTINGS);
-  assert.deepEqual(cleanSettings({ voice: "yes", volume: 5, camera: "side", extra: 1 }), {
-    voice: true,
+  assert.deepEqual(cleanSettings({ voice: "yes", volume: 5, camera: "side", sets: 9, restSeconds: 45, extra: 1 }), {
+    ...DEFAULT_SETTINGS,
     volume: 1,
-    camera: "user",
   });
   assert.equal(cleanSettings({ volume: 0 }).volume, 0.2);
 });
@@ -17,7 +16,8 @@ test("settings are saved and loaded", () => {
   const storage = memoryStorage();
   updateSettings({ voice: false }, storage);
   updateSettings({ camera: "environment" }, storage);
-  assert.deepEqual(loadSettings(storage), { voice: false, volume: 1, camera: "environment" });
+  updateSettings({ sets: 5, restSeconds: 120 }, storage);
+  assert.deepEqual(loadSettings(storage), { voice: false, volume: 1, camera: "environment", sets: 5, restSeconds: 120 });
 });
 
 test("blocked storage still returns usable settings", () => {

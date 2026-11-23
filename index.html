@@ -192,6 +192,12 @@
               people yet. Feedback may be wrong. Trust your body first.
             </p>
           </div>
+          <div class="settings-card workout-card">
+            <p class="field-label">Sets</p>
+            <div id="sets-choice" class="segmented" role="radiogroup" aria-label="Sets"></div>
+            <p class="field-label settings-label">Rest between sets</p>
+            <div id="rest-choice" class="segmented" role="radiogroup" aria-label="Rest between sets"></div>
+          </div>
           <label id="guide-option" class="toggle-row" hidden>
             <span>
               <span class="toggle-title">Guide me into the position</span>
@@ -210,7 +216,20 @@
           <canvas id="overlay"></canvas>
         </div>
 
+        <div id="rest-box" class="rest-box" hidden>
+          <p class="rest-label">Rest</p>
+          <p id="rest-clock" class="rest-clock">0:00</p>
+          <p id="rest-next" class="rest-next"></p>
+          <p id="rest-last" class="rest-last"></p>
+          <div class="rest-actions">
+            <button id="rest-add" class="button button-secondary">+30 s</button>
+            <button id="rest-skip" class="button button-primary">Start now</button>
+          </div>
+          <button id="rest-end" class="button button-ghost button-block">End workout</button>
+        </div>
+
         <div id="stats" class="live-stats" hidden>
+          <p id="set-label" class="live-set"></p>
           <p id="reps" class="live-count"></p>
           <p id="feedback" class="live-feedback"></p>
           <p id="angle" class="live-debug"></p>
@@ -230,7 +249,7 @@
             <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <h2 class="results-title">Set finished</h2>
+        <h2 id="results-title" class="results-title">Set finished</h2>
         <p id="summary-skill" class="results-skill"></p>
         <div class="results-stats">
           <div class="stat-tile">
@@ -238,13 +257,17 @@
             <p class="stat-value" id="summary-reps"></p>
           </div>
           <div class="stat-tile">
-            <p class="stat-label">Form score</p>
+            <p class="stat-label" id="summary-score-label">Form score</p>
             <p class="stat-value" id="summary-score"></p>
           </div>
         </div>
         <p id="summary-progress" class="results-progress"></p>
+        <div id="summary-sets-card" class="info-card summary-sets-card" hidden>
+          <h3 class="card-title">Sets</h3>
+          <ol id="summary-sets" class="set-list"></ol>
+        </div>
         <div class="info-card">
-          <h3 class="card-title">Form notes</h3>
+          <h3 class="card-title" id="summary-notes-title">Form notes</h3>
           <ul id="summary-errors" class="notes-list"></ul>
         </div>
         <p id="summary-streak" class="results-streak"></p>

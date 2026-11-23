@@ -10,6 +10,7 @@ import { isLevelUnlocked } from "./path.js";
 import { CAMERA_VIEWS, getSkill } from "./skills.js";
 import { loadName, saveName, cleanName } from "./profile.js";
 import { loadSettings, updateSettings } from "./settings.js";
+import { REST_CALLOUTS, REST_OPTIONS, SET_OPTIONS, createWorkout, describeRest, formatClock } from "./workout.js";
 import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -86,6 +87,8 @@ const closeTrainingButton = $("#close-training");
 const skillCamera = $("#skill-camera");
 const skillCue = $("#skill-cue");
 const skillBeta = $("#skill-beta");
+const setsChoice = $("#sets-choice");
+const restChoice = $("#rest-choice");
 const guideOption = $("#guide-option");
 const guideToggle = $("#guide-toggle");
 const skipGuideButton = $("#skip-guide");
@@ -101,8 +104,23 @@ const statsBox = $("#stats");
 const angleText = $("#angle");
 const feedbackText = $("#feedback");
 const repsText = $("#reps");
+const setLabel = $("#set-label");
+
+// Rest between sets
+const restBox = $("#rest-box");
+const restClock = $("#rest-clock");
+const restNext = $("#rest-next");
+const restLast = $("#rest-last");
+const restAddButton = $("#rest-add");
+const restSkipButton = $("#rest-skip");
+const restEndButton = $("#rest-end");
 
 // Results
+const resultsTitle = $("#results-title");
+const summaryScoreLabel = $("#summary-score-label");
+const summarySetsCard = $("#summary-sets-card");
+const summarySets = $("#summary-sets");
+const summaryNotesTitle = $("#summary-notes-title");
 const summarySkill = $("#summary-skill");
 const summaryAmountLabel = $("#summary-amount-label");
 const summaryReps = $("#summary-reps");
@@ -139,7 +157,11 @@ let poseLandmarker;
 let stream = null;
 let running = false;
 let animationId = 0;
-let trainingState = "intro"; // "intro", "running" or "paused"
+let trainingState = "intro"; // "intro", "running", "paused" or "rest"
+let workout = null; // Sets of the running workout (see workout.js)
+let rest = null; // { endsAt, lastCallout, timer } while resting
+let wakeLock = null; // Keeps the screen on during a workout
+let progressSaveFailed = false;
 let lastState = null;
 let lastPartialAt = 0;
 let lastAnnouncedHold = 0;
@@ -412,9 +434,10 @@ function setTrainingState(state) {
   trainingState = state;
   trainingIntro.hidden = state !== "intro";
   cameraBox.hidden = state !== "running";
-  statsBox.hidden = state === "intro";
-  pauseButton.hidden = state === "intro";
-  finishButton.hidden = state === "intro";
+  restBox.hidden = state !== "rest";
+  statsBox.hidden = state === "intro" || state === "rest";
+  pauseButton.hidden = state === "intro" || state === "rest";
+  finishButton.hidden = state === "intro" || state === "rest";
   pauseButton.textContent = state === "paused" ? "Resume" : "Pause";
 }
 
@@ -442,9 +465,121 @@ function openTraining(skillId) {
   // The guide is on by default until the user has finished it once for this skill.
   guideOption.hidden = !exercise.setup;
   guideToggle.checked = Boolean(exercise.setup) && !loadGuideSeen().has(skillId);
+  workout = null;
+  renderWorkoutChoices();
   resetSet();
   setTrainingState("intro");
   showScreen("training");
+}
+
+// ---------- Sets and rest ----------
+
+function renderChoice(container, options, active, label, onPick) {
+  container.replaceChildren(
+    ...options.map((value) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "chip";
+      button.textContent = label(value);
+      button.setAttribute("role", "radio");
+      button.setAttribute("aria-checked", String(value === active));
+      button.classList.toggle("is-active", value === active);
+      button.addEventListener("click", () => onPick(value));
+      return button;
+    })
+  );
+}
+
+function renderWorkoutChoices() {
+  renderChoice(setsChoice, SET_OPTIONS, settings.sets, String, (sets) => {
+    settings = updateSettings({ sets });
+    renderWorkoutChoices();
+  });
+  const restLabel = (seconds) => (seconds < 120 ? `${seconds} s` : `${seconds / 60} min`);
+  renderChoice(restChoice, REST_OPTIONS, settings.restSeconds, restLabel, (restSeconds) => {
+    settings = updateSettings({ restSeconds });
+    renderWorkoutChoices();
+  });
+}
+
+function showSetLabel() {
+  setLabel.textContent = workout && workout.sets > 1 ? `Set ${workout.currentSet} of ${workout.sets}` : "";
+}
+
+function describeAmount(result) {
+  if (exercise.measure === "hold") {
+    return `${result.seconds} s`;
+  }
+  return `${result.reps} ${result.reps === 1 ? "rep" : "reps"}`;
+}
+
+// The screen must stay on: the phone stands on the floor during the whole workout.
+async function keepScreenOn() {
+  try {
+    wakeLock = (await navigator.wakeLock?.request("screen")) ?? null;
+  } catch (error) {
+    wakeLock = null; // Not supported or not allowed: the app still works.
+  }
+}
+
+function allowScreenOff() {
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+
+function startRest(result) {
+  const seconds = workout.restSeconds;
+  rest = { endsAt: Date.now() + seconds * 1000, lastCallout: Infinity, timer: 0 };
+  restNext.textContent = `Next: set ${workout.currentSet} of ${workout.sets}`;
+  restLast.textContent = `Set ${workout.finishedSets}: ${describeAmount(result)} · ${result.score}% form`;
+  setTrainingState("rest");
+  speak(`Set ${workout.finishedSets} done. ${describeAmount(result).replace(" s", " seconds")}. Rest ${describeRest(seconds)}.`, {
+    priority: true,
+  });
+  tickRest();
+  rest.timer = setInterval(tickRest, 250);
+}
+
+function stopRest() {
+  if (rest) {
+    clearInterval(rest.timer);
+  }
+  rest = null;
+}
+
+function tickRest() {
+  if (!rest) {
+    return;
+  }
+  const remaining = (rest.endsAt - Date.now()) / 1000;
+  restClock.textContent = formatClock(remaining);
+
+  if (remaining <= 0) {
+    stopRest();
+    startNextSet();
+    return;
+  }
+
+  // Say only the closest callout that was just reached (30, 10, 3, 2, 1).
+  const reached = REST_CALLOUTS.filter((at) => remaining <= at && at < rest.lastCallout);
+  if (reached.length > 0) {
+    const at = Math.min(...reached);
+    rest.lastCallout = at;
+    speak(at >= 10 ? `${at} seconds.` : String(at), { priority: true });
+  }
+}
+
+async function startNextSet() {
+  resetSet();
+  showSetLabel();
+  const cameraStarted = await startCamera();
+  if (!cameraStarted) {
+    setTrainingState("paused");
+    return;
+  }
+  setTrainingState("running");
+  speak(`Set ${workout.currentSet}. Get into position.`, { priority: true });
+  startAnalysis();
 }
 
 async function loadPoseModel() {
@@ -627,6 +762,10 @@ async function startTraining() {
   if (!cameraStarted) {
     return;
   }
+  workout = createWorkout({ sets: settings.sets, restSeconds: settings.restSeconds });
+  progressSaveFailed = false;
+  keepScreenOn();
+  showSetLabel();
   setTrainingState("running");
 
   if (guideToggle.checked && exercise.setup) {
@@ -669,70 +808,134 @@ async function resumeTraining() {
 
 // Leaving the training without "Finish set" does not save the set.
 async function closeTraining() {
-  if (trainingState !== "intro" && tracker.hasData()) {
-    const leave = await confirmHint("Leave training?", "This set will not be saved.");
+  const savedSets = workout?.finishedSets ?? 0;
+  const setRunning = trainingState !== "intro" && trainingState !== "rest" && tracker.hasData();
+  if (setRunning || savedSets > 0) {
+    const parts = [];
+    if (setRunning) parts.push("This set will not be saved.");
+    if (savedSets > 0) parts.push(`Your ${savedSets} finished ${savedSets === 1 ? "set is" : "sets are"} saved.`);
+    const leave = await confirmHint("Leave workout?", parts.join(" "));
     if (!leave) {
       return;
     }
   }
+  stopRest();
   stopEverything();
+  allowScreenOff();
+  workout = null;
   showTab(activeTab);
 }
 
-// Ends the set: stops everything, turns the camera off, shows the results.
+// Ends the set: stops the camera, saves the set, then rests or shows the results.
 function finishSet() {
   stopEverything();
-  summaryErrors.replaceChildren();
-  summaryProgress.textContent = "";
-  summarySkill.textContent = getSkill(currentSkillId).name;
-  summaryStreak.textContent = describeStreak(getStreak(loadProgress().practiceDays));
-
-  const isHold = exercise.measure === "hold";
-  summaryAmountLabel.textContent = isHold ? "Best hold" : "Reps";
 
   if (!tracker.hasData()) {
-    summaryReps.textContent = "–";
-    summaryScore.textContent = "–";
-    const item = document.createElement("li");
-    item.textContent = "No set recorded. Get into the starting position first, then finish your set.";
-    summaryErrors.appendChild(item);
-    showScreen("results");
+    if (workout && workout.finishedSets > 0) {
+      showWorkoutResults(); // Ended early: show the sets that were done.
+    } else {
+      showEmptyResults();
+    }
     return;
   }
 
   const result = tracker.summary();
-  summaryReps.textContent = isHold ? `${result.seconds} s` : String(result.reps);
-  summaryScore.textContent = `${result.score}%`;
-
-  const notes = result.errors.length === 0 ? ["No form issues found. Nice work!"] : result.errors;
-  for (const note of notes) {
-    const item = document.createElement("li");
-    item.textContent = note;
-    summaryErrors.appendChild(item);
-  }
-
-  // Save the set to the user's progress
   const update = recordSet(loadProgress(), currentSkillId, result);
-  const saved = saveProgress(update.progress);
-  if (update.newlyCompleted) {
-    summaryProgress.textContent = "Skill completed! Well done.";
-  } else if (update.goalReached) {
-    summaryProgress.textContent =
-      "Goal reached! Reach it again on another day to complete this skill.";
-  } else if (update.isPractice) {
-    summaryProgress.textContent = "Practice counted for this week.";
+  if (!saveProgress(update.progress)) {
+    progressSaveFailed = true;
   }
-  if (!saved) {
+  workout.addSet(result, update);
+
+  if (workout.isFinished()) {
+    showWorkoutResults();
+  } else {
+    startRest(result);
+  }
+}
+
+function fillResultsHeader(title) {
+  resultsTitle.textContent = title;
+  summarySkill.textContent = getSkill(currentSkillId).name;
+  summaryErrors.replaceChildren();
+  summarySets.replaceChildren();
+  summaryProgress.textContent = "";
+  summaryStreak.textContent = describeStreak(getStreak(loadProgress().practiceDays));
+}
+
+function addListItem(list, text) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  list.appendChild(item);
+}
+
+function showEmptyResults() {
+  allowScreenOff();
+  fillResultsHeader("Set finished");
+  summaryAmountLabel.textContent = exercise.measure === "hold" ? "Best hold" : "Reps";
+  summaryScoreLabel.textContent = "Form score";
+  summaryReps.textContent = "–";
+  summaryScore.textContent = "–";
+  summarySetsCard.hidden = true;
+  summaryNotesTitle.textContent = "Form notes";
+  addListItem(summaryErrors, "No set recorded. Get into the starting position first, then finish your set.");
+  workout = null;
+  showScreen("results");
+}
+
+const NEWS_TEXT = {
+  completed: "Skill completed! Well done.",
+  goal: "Goal reached! Reach it again on another day to complete this skill.",
+  practice: "Practice counted for this week.",
+};
+
+function showWorkoutResults() {
+  stopRest();
+  allowScreenOff();
+  const summary = workout.summary();
+  const isHold = exercise.measure === "hold";
+  const many = summary.sets.length > 1;
+
+  fillResultsHeader(many ? "Workout finished" : "Set finished");
+  summaryAmountLabel.textContent = isHold ? "Best hold" : many ? "Total reps" : "Reps";
+  summaryReps.textContent = isHold ? `${summary.bestSeconds} s` : String(summary.totalReps);
+  summaryScoreLabel.textContent = many ? "Avg. form" : "Form score";
+  summaryScore.textContent = `${summary.averageScore}%`;
+
+  summarySetsCard.hidden = !many;
+  summary.sets.forEach((set, index) => {
+    const item = document.createElement("li");
+    item.className = "set-item";
+    const name = document.createElement("span");
+    name.className = "set-name";
+    name.textContent = `Set ${index + 1}`;
+    const value = document.createElement("span");
+    value.className = "set-value";
+    value.textContent = `${describeAmount(set)} · ${set.score}%`;
+    item.append(name, value);
+    summarySets.appendChild(item);
+  });
+
+  summaryNotesTitle.textContent = many ? "Form notes (last set)" : "Form notes";
+  const notes = summary.errors.length === 0 ? ["No form issues found. Nice work!"] : summary.errors;
+  for (const note of notes) {
+    addListItem(summaryErrors, note);
+  }
+
+  summaryProgress.textContent = NEWS_TEXT[summary.news] ?? "";
+  if (progressSaveFailed) {
     summaryProgress.textContent += " (Progress could not be saved in this browser.)";
   }
-  summaryStreak.textContent = describeStreak(getStreak(update.progress.practiceDays));
 
   showScreen("results");
-  const amount = isHold ? `Best hold ${result.seconds} seconds.` : `${result.reps} reps.`;
-  const completedText = update.newlyCompleted ? " Skill completed. Well done." : "";
-  speak(`Set finished. ${amount} Form score ${result.score} percent.${completedText}`, {
-    priority: true,
-  });
+  const amount = isHold
+    ? `Best hold ${summary.bestSeconds} seconds.`
+    : `${summary.totalReps} ${many ? "reps in total" : "reps"}.`;
+  const completedText = summary.news === "completed" ? " Skill completed. Well done." : "";
+  speak(
+    `${many ? "Workout" : "Set"} finished. ${amount} ${many ? "Average form" : "Form score"} ${summary.averageScore} percent.${completedText}`,
+    { priority: true }
+  );
+  workout = null;
 }
 
 // ---------- Events ----------
@@ -763,6 +966,26 @@ skipGuideButton.addEventListener("click", () => {
   repsText.textContent = "";
 });
 newSetButton.addEventListener("click", () => openTraining(currentSkillId));
+restAddButton.addEventListener("click", () => {
+  if (rest) {
+    rest.endsAt += 30000;
+    rest.lastCallout = Infinity;
+    tickRest();
+  }
+});
+restSkipButton.addEventListener("click", () => {
+  if (rest) {
+    rest.endsAt = Date.now();
+    tickRest();
+  }
+});
+restEndButton.addEventListener("click", showWorkoutResults);
+// The browser drops the wake lock when the app is in the background.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && workout && (!wakeLock || wakeLock.released)) {
+    keepScreenOn();
+  }
+});
 doneButton.addEventListener("click", () => {
   window.speechSynthesis.cancel();
   showTab(activeTab);

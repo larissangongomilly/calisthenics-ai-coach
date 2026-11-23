@@ -1174,3 +1174,98 @@ dialog::backdrop {
 .camera-box.is-back {
   transform: none;
 }
+
+/* ---------- Sets and rest ---------- */
+.workout-card {
+  margin-top: 14px;
+}
+
+.workout-card .chip {
+  padding: 0 6px;
+}
+
+.live-set {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.live-set:empty {
+  display: none;
+}
+
+.rest-box {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.rest-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.rest-clock {
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 84px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.rest-next {
+  margin-top: 14px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rest-last {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.rest-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.rest-actions .button {
+  flex: 1;
+}
+
+.summary-sets-card {
+  margin-bottom: 12px;
+}
+
+.set-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.set-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.set-item:last-child {
+  border-bottom: 0;
+}
+
+.set-name {
+  color: var(--muted);
+}
+
+.set-value {
+  font-weight: 700;
+}
