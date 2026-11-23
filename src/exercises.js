@@ -15,7 +15,6 @@
 //
 // Pose values (see pose.js): pose.side has joints in pixels (y grows downward),
 // pose.m has angles in degrees. Tilt angles are 0 (horizontal) to 90 (vertical).
-import { calculateAngle } from "./angles.js";
 import { checkBodyLine, getPositionStatus } from "./rules.js";
 
 // ---------- Small helpers ----------
@@ -206,7 +205,7 @@ export const EXERCISES = {
   "push-up": {
     measure: "reps",
     position(p) {
-      const status = getPositionStatus(p.raw, p.width, p.height);
+      const status = getPositionStatus(p.side);
       if (status === "not_ready") {
         return "Get into plank position, side on to the camera.";
       }
@@ -218,9 +217,8 @@ export const EXERCISES = {
       }
       return true;
     },
-    // Uses the 0..1 coordinates, like the original push-up rules.
     rep: {
-      metric: (p) => calculateAngle(p.raw.shoulder, p.raw.elbow, p.raw.wrist),
+      metric: (p) => p.m.elbow,
       down: 90,
       up: 160,
       start: 140,
@@ -229,13 +227,13 @@ export const EXERCISES = {
     checks: [
       {
         id: "sagging",
-        ok: (p) => checkBodyLine(p.raw).hipPosition !== "sagging",
+        ok: (p) => checkBodyLine(p.side).hipPosition !== "sagging",
         cue: { text: "Lift your hips a little.", spoken: "Gently lift your hips." },
         error: "Hips sagged",
       },
       {
         id: "high",
-        ok: (p) => checkBodyLine(p.raw).hipPosition !== "high",
+        ok: (p) => checkBodyLine(p.side).hipPosition !== "high",
         cue: "Lower your hips a little.",
         error: "Hips were too high",
       },
@@ -253,7 +251,7 @@ export const EXERCISES = {
       },
       {
         say: "Tense your belly and glutes. Make one straight line from your head to your heels.",
-        check: (p) => getPositionStatus(p.raw, p.width, p.height) === "ready" && checkBodyLine(p.raw).isStraight,
+        check: (p) => getPositionStatus(p.side) === "ready" && checkBodyLine(p.side).isStraight,
       },
     ],
   },

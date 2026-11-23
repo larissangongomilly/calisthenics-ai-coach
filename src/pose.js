@@ -38,13 +38,12 @@ function isVisible(points) {
 // Returns the pose for one video frame.
 // side:  the body side the camera sees best (pixels)
 // left / right: both sides (pixels), for front views and one-sided skills
-// raw:   the best side in MediaPipe's 0..1 coordinates (used by the push-up rules)
 // m:     angles in degrees
 export function buildPose(landmarks, width, height) {
-  const raw = getBodySide(landmarks);
+  const { name } = getBodySide(landmarks);
   const left = getSidePoints(landmarks, "left", width, height);
   const right = getSidePoints(landmarks, "right", width, height);
-  const side = raw.name === "left" ? left : right;
+  const side = name === "left" ? left : right;
   const { shoulder, elbow, wrist, hip, knee, ankle } = side;
 
   const m = {
@@ -74,5 +73,5 @@ export function buildPose(landmarks, width, height) {
     wristLevelDiff: Math.abs(left.wrist.y - right.wrist.y) / height,
   };
 
-  return { side, left, right, raw, m, width, height, visible: isVisible(side) };
+  return { side, left, right, m, width, height, visible: isVisible(side) };
 }

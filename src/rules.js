@@ -45,29 +45,34 @@ export function getBodySide(landmarks) {
   };
 }
 
-// Angle (0 to 90 degrees) between the line a-b and the horizontal, in pixels.
-function angleToHorizontal(a, b, width, height) {
-  const dx = Math.abs(b.x - a.x) * width;
-  const dy = Math.abs(b.y - a.y) * height;
+// Angle (0 to 90 degrees) between the line a-b and the horizontal.
+function angleToHorizontal(a, b) {
+  const dx = Math.abs(b.x - a.x);
+  const dy = Math.abs(b.y - a.y);
   return (Math.atan2(dy, dx) * 180) / Math.PI;
 }
 
-// Checks the starting position for a full push-up:
+// Checks the position for a full push-up. `side` must be in pixels:
+// angles from MediaPipe's 0..1 coordinates are distorted when the video is
+// not square (for example a phone in portrait mode).
 // "not_ready"  = not in plank position (or body not fully visible)
 // "knees_bent" = in plank, but legs are bent (knee push-up)
 // "ready"      = full plank with straight legs
-export function getPositionStatus(side, width, height) {
-  const { shoulder, wrist, hip, knee, ankle } = side;
+export function getPositionStatus(side) {
+  const { shoulder, elbow, wrist, hip, knee, ankle } = side;
 
   if (![shoulder, wrist, hip, knee, ankle].every(isVisible)) {
     return "not_ready";
   }
 
-  const bodyTilt = angleToHorizontal(shoulder, ankle, width, height);
-  const armTilt = angleToHorizontal(shoulder, wrist, width, height);
+  const bodyTilt = angleToHorizontal(shoulder, ankle);
+  const armTilt = angleToHorizontal(shoulder, wrist);
+  // At the bottom of a deep push-up the shoulders come close to the hands,
+  // so the arm line is only checked while the arms are (almost) straight.
+  const armsBent = elbow && calculateAngle(shoulder, elbow, wrist) < 140;
 
   const bodyIsHorizontal = bodyTilt <= 30;
-  const armsAreVertical = armTilt >= 45 && wrist.y > shoulder.y;
+  const armsAreVertical = wrist.y > shoulder.y && (armsBent || armTilt >= 45);
 
   if (!bodyIsHorizontal || !armsAreVertical) {
     return "not_ready";

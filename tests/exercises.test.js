@@ -69,9 +69,30 @@ test("push-up: counts full reps, ignores shallow ones and knee push-ups", () => 
   assert.ok(summary.errors.some((e) => e.includes("full range")));
 });
 
+test("push-up: works on a phone in portrait mode", () => {
+  const phone = { width: 720, height: 1280 };
+  const frames = (angles) => angles.map((a) => pose(plank(a, 0, false, phone), phone));
+  const tracker = createTracker(getExercise("push-up"));
+
+  // Good reps with arms almost (not fully) locked at the top count.
+  const goodRep = [165, 150, 130, 110, 90, 80, 90, 110, 130, 150, 165];
+  let frame = run(tracker, frames([...goodRep, ...goodRep]));
+  assert.equal(frame.reps, 2);
+
+  // A shallow rep (only down to 120 degrees) does not count.
+  frame = run(tracker, frames([165, 150, 135, 120, 135, 150, 165]), 5000);
+  assert.equal(frame.reps, 2);
+  assert.ok(tracker.summary().errors.some((e) => e.includes("full range")));
+});
+
+test("push-up: a deep rep stays in position at the bottom", () => {
+  const tracker = createTracker(getExercise("push-up"));
+  assert.equal(tracker.update(pose(plank(50)), 0).inPosition, true);
+});
+
 test("push-up: sagging and high hips are detected", () => {
   const tracker = createTracker(getExercise("push-up"));
-  let frame = run(tracker, Array(40).fill(pose(plank(170, 0.06))));
+  let frame = run(tracker, Array(40).fill(pose(plank(170, 0.09))));
   assert.equal(frame.state, "sagging");
   frame = tracker.update(pose(plank(170, -0.08)), 5000);
   assert.equal(frame.state, "high");
@@ -102,7 +123,7 @@ test("handstand: straight line is good, banana shape is not, plank is no handsta
 
 test("muscle-up counts each move from hang to support", () => {
   const tracker = createTracker(getExercise("bar-muscle-up"));
-  const frame = run(tracker, [HANG, HANG, SUPPORT, SUPPORT, HANG, SUPPORT].map(pose));
+  const frame = run(tracker, [HANG, HANG, SUPPORT, SUPPORT, HANG, SUPPORT].map((p) => pose(p)));
   assert.equal(frame.reps, 2);
 });
 

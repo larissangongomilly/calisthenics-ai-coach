@@ -27,22 +27,27 @@ export function fakeLandmarks(points) {
   return landmarks;
 }
 
-export function pose(points) {
-  return buildPose(fakeLandmarks(points), WIDTH, HEIGHT);
+export function pose(points, size = { width: WIDTH, height: HEIGHT }) {
+  return buildPose(fakeLandmarks(points), size.width, size.height);
 }
 
-// Side-view plank with a given elbow angle. hipOffset > 0 lets the hips sag,
-// < 0 lifts them. kneeBent puts the knees on the floor.
-export function plank(elbowDeg, hipOffset = 0, kneeBent = false) {
-  const armLength = 0.1;
-  const wrist = { x: 0.3, y: 0.75 };
+// Side-view plank with a given elbow angle (in pixels, like the camera sees it).
+// hipOffset > 0 lets the hips sag, < 0 lifts them. kneeBent puts the knees on
+// the floor. size picks the video size, for example a phone in portrait mode.
+export function plank(elbowDeg, hipOffset = 0, kneeBent = false, size = { width: WIDTH, height: HEIGHT }) {
+  // Build the pose in pixels of a square, then map it to 0..1 for this video size.
+  const unit = Math.min(size.width, size.height);
+  const at = (x, y) => ({ x: (x * unit) / size.width, y: (y * unit) / size.height });
+  const armLength = 0.13;
+  const wrist = { x: 0.2, y: 0.9 };
   const d = 2 * armLength * Math.sin((elbowDeg * Math.PI) / 360);
-  const shoulder = { x: 0.3, y: wrist.y - d };
-  const elbow = { x: 0.3 - Math.sqrt(Math.max(armLength ** 2 - (d / 2) ** 2, 0)), y: wrist.y - d / 2 };
-  const ankle = { x: 0.8, y: 0.72 };
+  const shoulder = { x: 0.2, y: wrist.y - d };
+  const elbow = { x: 0.2 - Math.sqrt(Math.max(armLength ** 2 - (d / 2) ** 2, 0)), y: wrist.y - d / 2 };
+  const ankle = { x: 0.9, y: 0.86 };
   const hip = { x: 0.55, y: shoulder.y + (ankle.y - shoulder.y) * 0.5 + hipOffset };
-  const knee = kneeBent ? { x: 0.68, y: 0.9 } : { x: 0.675, y: (hip.y + ankle.y) / 2 };
-  return { shoulder, elbow, wrist, hip, knee, ankle };
+  const knee = kneeBent ? { x: 0.72, y: 0.98 } : { x: 0.725, y: (hip.y + ankle.y) / 2 };
+  const points = { shoulder, elbow, wrist, hip, knee, ankle };
+  return Object.fromEntries(Object.entries(points).map(([joint, p]) => [joint, at(p.x, p.y)]));
 }
 
 // Lying on the back with legs lifted by legDeg degrees (hollow body hold).
