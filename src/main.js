@@ -4,6 +4,7 @@ import { checkBodyLine, getBodySide, getPositionStatus } from "./rules.js";
 import { createRepCounter } from "./reps.js";
 import { createSession } from "./session.js";
 import { loadProgress, recordSet, saveProgress } from "./progress.js";
+import { describeStreak, getStreak } from "./streak.js";
 import { speak } from "./voice.js";
 
 const trainingScreen = document.querySelector("#training-screen");
@@ -27,6 +28,7 @@ const summaryReps = document.querySelector("#summary-reps");
 const summaryScore = document.querySelector("#summary-score");
 const summaryErrors = document.querySelector("#summary-errors");
 const summaryProgress = document.querySelector("#summary-progress");
+const summaryStreak = document.querySelector("#summary-streak");
 
 const SAFETY_KEY = "safetyNoticeHidden";
 const CURRENT_SKILL = "push-up"; // Only the push-up is evaluable for now.
@@ -304,6 +306,7 @@ function finishSet() {
   window.speechSynthesis.cancel();
   summaryErrors.replaceChildren();
   summaryProgress.textContent = "";
+  summaryStreak.textContent = describeStreak(getStreak(loadProgress().practiceDays));
 
   if (!session.hasData()) {
     summaryReps.textContent = "No set recorded yet.";
@@ -339,6 +342,7 @@ function finishSet() {
   if (!saved) {
     summaryProgress.textContent += " (Progress could not be saved in this browser.)";
   }
+  summaryStreak.textContent = describeStreak(getStreak(update.progress.practiceDays));
 
   setUiState("results");
   const completedText = update.newlyCompleted ? " Skill completed. Well done." : "";
