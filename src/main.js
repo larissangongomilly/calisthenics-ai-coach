@@ -3,6 +3,7 @@ import { calculateAngle } from "./angles.js";
 import { checkBodyLine, getBodySide, getPositionStatus } from "./rules.js";
 import { createRepCounter } from "./reps.js";
 import { createSession } from "./session.js";
+import { loadProgress, recordSet, saveProgress } from "./progress.js";
 import { speak } from "./voice.js";
 
 const trainingScreen = document.querySelector("#training-screen");
@@ -25,8 +26,10 @@ const safetyLink = document.querySelector("#safety-link");
 const summaryReps = document.querySelector("#summary-reps");
 const summaryScore = document.querySelector("#summary-score");
 const summaryErrors = document.querySelector("#summary-errors");
+const summaryProgress = document.querySelector("#summary-progress");
 
 const SAFETY_KEY = "safetyNoticeHidden";
+const CURRENT_SKILL = "push-up"; // Only the push-up is evaluable for now.
 
 let poseLandmarker;
 let stream = null;
@@ -300,6 +303,7 @@ function finishSet() {
   stopCamera();
   window.speechSynthesis.cancel();
   summaryErrors.replaceChildren();
+  summaryProgress.textContent = "";
 
   if (!session.hasData()) {
     summaryReps.textContent = "No set recorded yet.";
@@ -324,10 +328,24 @@ function finishSet() {
     }
   }
 
+  // Save the set to the user's progress
+  const update = recordSet(loadProgress(), CURRENT_SKILL, result);
+  const saved = saveProgress(update.progress);
+  if (update.newlyCompleted) {
+    summaryProgress.textContent = "Skill completed! Well done.";
+  } else if (update.isPractice) {
+    summaryProgress.textContent = "Practice counted for this week.";
+  }
+  if (!saved) {
+    summaryProgress.textContent += " (Progress could not be saved in this browser.)";
+  }
+
   setUiState("results");
-  speak(`Set finished. ${result.reps} reps. Form score ${result.score} percent.`, {
-    priority: true,
-  });
+  const completedText = update.newlyCompleted ? " Skill completed. Well done." : "";
+  speak(
+    `Set finished. ${result.reps} reps. Form score ${result.score} percent.${completedText}`,
+    { priority: true }
+  );
 }
 
 // Goes back to the start screen with a clean slate.
