@@ -1080,3 +1080,19 @@ dialog::backdrop {
   height: 40px;
   font-size: 15px;
 }
+
+/* Small dots between skills on the path */
+.road-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: -6px 0 12px;
+}
+
+.road-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--locked);
+}

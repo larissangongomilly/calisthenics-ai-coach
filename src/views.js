@@ -108,8 +108,27 @@ export function renderRoad(container, progress, onSelect) {
     container.append(banner);
 
     level.skills.forEach((skill, index) => {
+      const offset = ROAD_OFFSETS[index % ROAD_OFFSETS.length];
+
+      // Small dots from the previous skill to this one. They use the level's
+      // dark color when the previous skill is completed, otherwise gray.
+      if (index > 0) {
+        const previous = level.skills[index - 1];
+        const fromX = ROAD_OFFSETS[(index - 1) % ROAD_OFFSETS.length];
+        const dots = element("div", "road-dots");
+        for (const t of [0.2, 0.5, 0.8]) {
+          const dot = element("span", "road-dot");
+          dot.style.transform = `translateX(${Math.round(fromX + (offset - fromX) * t)}px)`;
+          if (previous.completed) {
+            dot.style.background = colors.dark;
+          }
+          dots.append(dot);
+        }
+        container.append(dots);
+      }
+
       const step = element("div", "road-step");
-      step.style.transform = `translateX(${ROAD_OFFSETS[index % ROAD_OFFSETS.length]}px)`;
+      step.style.transform = `translateX(${offset}px)`;
 
       const node = element("button", "node");
       node.type = "button";
