@@ -1,10 +1,12 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
+import { calculateAngle } from "./angles.js";
 
 const startButton = document.querySelector("#start-button");
 const message = document.querySelector("#message");
 const video = document.querySelector("#camera");
 const canvas = document.querySelector("#overlay");
 const ctx = canvas.getContext("2d");
+const angleText = document.querySelector("#angle");
 
 let poseLandmarker;
 
@@ -51,6 +53,10 @@ function detectPose() {
         ctx.arc(point.x * canvas.width, point.y * canvas.height, 5, 0, 2 * Math.PI);
         ctx.fill();
       }
+
+      // Show the live angle of the left elbow
+      const elbowAngle = calculateAngle(landmarks[11], landmarks[13], landmarks[15]);
+      angleText.textContent = `Left elbow: ${Math.round(elbowAngle)}°`;
     }
   }
   requestAnimationFrame(detectPose);
