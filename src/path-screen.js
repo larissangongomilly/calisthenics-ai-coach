@@ -1,5 +1,5 @@
 // Draws the skill path screen: levels, locked and unlocked skills, progress.
-import { TRACKS } from "./skills.js";
+import { CAMERA_VIEWS, TRACKS } from "./skills.js";
 import { getSkillPath } from "./path.js";
 
 function element(tag, className, text) {
@@ -44,6 +44,15 @@ function renderSkill(skill, levelUnlocked) {
   card.append(header);
 
   card.append(element("p", "skill-track", `${skill.track} · ${TRACKS[skill.track]}`));
+
+  if (skill.coachRequired) {
+    card.append(
+      element("p", "skill-warning", "Only with a qualified coach and proper equipment.")
+    );
+  }
+
+  card.append(element("p", "skill-info", `Camera: ${CAMERA_VIEWS[skill.camera]}`));
+  card.append(element("p", "skill-info", `Coach cue: “${skill.cue}”`));
 
   if (skill.milestones.length > 0) {
     const list = element("ol", "skill-milestones");

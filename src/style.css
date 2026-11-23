@@ -261,3 +261,17 @@ dialog button[value="hide"] {
 #path-back-button {
   margin-top: 24px;
 }
+
+.skill-info {
+  margin: 4px 0 0;
+  color: #c9ced8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.skill-warning {
+  margin: 6px 0 0;
+  color: #ffb547;
+  font-size: 13px;
+  font-weight: 600;
+}
