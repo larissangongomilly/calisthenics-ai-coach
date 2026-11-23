@@ -43,6 +43,8 @@ export const LEVELS = [
 // measure: "reps" for dynamic skills, "hold" for static skills.
 // camera: key of CAMERA_VIEWS. cue: the main live feedback sentence.
 // coachRequired: never train alone, needs a coach and proper equipment.
+// evaluable: the app has camera rules for it (see exercises.js).
+// beta: the camera rules follow the technique guide but are not tested yet.
 function skill(id, name, level, track, measure, camera, cue, extra = {}) {
   return {
     id,
@@ -52,7 +54,8 @@ function skill(id, name, level, track, measure, camera, cue, extra = {}) {
     measure,
     camera,
     cue,
-    evaluable: false,
+    evaluable: true,
+    beta: true,
     coachRequired: false,
     milestones: [],
     ...extra,
@@ -65,7 +68,7 @@ export const SKILLS = [
   // Level 1 – Basics
   skill("push-up", "Classic push-up", 1, "A", "reps", "side",
     "Lower your chest and hips together.", {
-      evaluable: true,
+      beta: false,
       milestones: ["Lower once with control", "First clean rep", "Five clean reps in a row"],
     }),
   skill("inverted-row", "Inverted row", 1, "A", "reps", "side",

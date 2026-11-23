@@ -11,7 +11,8 @@ The skill path gives users a clear order from easy to hard skills. Harder skills
   - **A – Entry:** first skills of the level.
   - **B – Build-up:** skills that build strength for the milestone.
   - **C – Milestone:** the key skills that close the level.
-- **Evaluable:** Only skills with their own camera rules are analyzed. Today this is the **push-up** only. All other skills show **"Coming soon"**.
+- **Evaluable:** Every skill has camera rules (`src/exercises.js`). Only the **push-up** rules are tested. All other skills are marked **"Beta"**: their rules follow `docs/technique-guide.md` but are not tested with real people yet.
+- **Coach required:** Hefesto, iron cross, one-arm muscle-up, maltese and victorian show a coach-and-equipment warning before every start.
 
 ## Levels
 

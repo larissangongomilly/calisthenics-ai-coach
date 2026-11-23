@@ -1,7 +1,7 @@
 # Technique Guide (all skills)
 
 > **Preliminary, not reviewed by calisthenics experts.**
-> Based on Larissa's German technique guide (*Calisthenics Technikleitfaden*, 7 levels, 51 entries), which draws on the references listed at the end. This file is the planning base for camera rules. A skill is only analyzed by the app once its own rules are built and tested (today: push-up only).
+> Based on Larissa's German technique guide (*Calisthenics Technikleitfaden*, 7 levels, 51 entries), which draws on the references listed at the end. This file is the base for the camera rules in `src/exercises.js`. Only the push-up rules are tested; all other skills are **beta** and need testing with real people (and ideally a coach) before the feedback can be trusted.
 
 ## General principles
 

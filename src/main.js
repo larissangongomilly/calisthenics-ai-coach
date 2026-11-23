@@ -40,6 +40,7 @@ const summaryStreak = document.querySelector("#summary-streak");
 const skillTitle = document.querySelector("#skill-title");
 const skillCamera = document.querySelector("#skill-camera");
 const skillCue = document.querySelector("#skill-cue");
+const skillBeta = document.querySelector("#skill-beta");
 const hintDialog = document.querySelector("#hint-dialog");
 const hintTitle = document.querySelector("#hint-title");
 const hintText = document.querySelector("#hint-text");
@@ -408,6 +409,7 @@ function showCurrentSkill() {
   skillTitle.textContent = skill.name;
   skillCamera.textContent = `Camera: ${CAMERA_VIEWS[skill.camera]}`;
   skillCue.textContent = `Coach cue: “${skill.cue}”`;
+  skillBeta.hidden = !skill.beta;
 }
 
 // Free choice: any evaluable skill can be trained. Locked levels and

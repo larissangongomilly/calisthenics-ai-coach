@@ -296,3 +296,17 @@ dialog button.secondary-button {
   color: #f2f4f7;
   border: 1px solid #2a2f3a;
 }
+
+.beta-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #2a2f3a;
+  color: #ffb547;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#skill-beta {
+  color: #ffb547;
+}

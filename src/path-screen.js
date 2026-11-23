@@ -43,7 +43,11 @@ function renderSkill(skill, levelUnlocked, onStart) {
   header.append(element("span", `skill-status status-${status.type}`, status.text));
   card.append(header);
 
-  card.append(element("p", "skill-track", `${skill.track} · ${TRACKS[skill.track]}`));
+  const track = element("p", "skill-track", `${skill.track} · ${TRACKS[skill.track]}`);
+  if (skill.beta) {
+    track.append(" ", element("span", "beta-tag", "Beta"));
+  }
+  card.append(track);
 
   if (skill.coachRequired) {
     card.append(
