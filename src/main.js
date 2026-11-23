@@ -1,6 +1,7 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { calculateAngle } from "./angles.js";
 import { checkBodyLine, isInPlankPosition } from "./rules.js";
+import { createRepCounter } from "./reps.js";
 import { speak } from "./voice.js";
 
 const startButton = document.querySelector("#start-button");
@@ -10,9 +11,11 @@ const canvas = document.querySelector("#overlay");
 const ctx = canvas.getContext("2d");
 const angleText = document.querySelector("#angle");
 const feedbackText = document.querySelector("#feedback");
+const repsText = document.querySelector("#reps");
 
 let poseLandmarker;
 let lastState = null;
+const repCounter = createRepCounter();
 
 async function loadPoseModel() {
   const vision = await FilesetResolver.forVisionTasks(
@@ -73,7 +76,7 @@ function detectPose() {
       const elbowAngle = calculateAngle(landmarks[11], landmarks[13], landmarks[15]);
       angleText.textContent = `Left elbow: ${Math.round(elbowAngle)}°`;
 
-      // Only judge the body line when the user is in plank position
+      // Only judge form and count reps when the user is in plank position
       if (!isInPlankPosition(landmarks, canvas.width, canvas.height)) {
         giveFeedback(
           "not_ready",
@@ -81,6 +84,9 @@ function detectPose() {
           "Get into plank position, side on to the camera."
         );
       } else {
+        const reps = repCounter.update(elbowAngle);
+        repsText.textContent = `Reps: ${reps.count}`;
+
         const bodyLine = checkBodyLine(landmarks);
         const degrees = Math.round(bodyLine.angle);
 
