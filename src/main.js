@@ -5,18 +5,22 @@ import { createRepCounter } from "./reps.js";
 import { createSession } from "./session.js";
 import { speak } from "./voice.js";
 
+const trainingScreen = document.querySelector("#training-screen");
+const resultsScreen = document.querySelector("#results-screen");
 const startButton = document.querySelector("#start-button");
 const finishButton = document.querySelector("#finish-button");
+const newSetButton = document.querySelector("#new-set-button");
 const message = document.querySelector("#message");
+const cameraBox = document.querySelector("#camera-box");
 const video = document.querySelector("#camera");
 const canvas = document.querySelector("#overlay");
 const ctx = canvas.getContext("2d");
+const statsBox = document.querySelector("#stats");
 const angleText = document.querySelector("#angle");
 const feedbackText = document.querySelector("#feedback");
 const repsText = document.querySelector("#reps");
 const safetyDialog = document.querySelector("#safety-dialog");
 const safetyLink = document.querySelector("#safety-link");
-const summaryBox = document.querySelector("#summary");
 const summaryReps = document.querySelector("#summary-reps");
 const summaryScore = document.querySelector("#summary-score");
 const summaryErrors = document.querySelector("#summary-errors");
@@ -24,10 +28,23 @@ const summaryErrors = document.querySelector("#summary-errors");
 const SAFETY_KEY = "safetyNoticeHidden";
 
 let poseLandmarker;
+let stream = null;
+let running = false;
+let animationId = 0;
 let lastState = null;
 let lastPartialAt = 0;
 let repCounter = createRepCounter();
 let session = createSession();
+
+// Shows and hides parts of the page depending on the current state.
+function setUiState(state) {
+  trainingScreen.hidden = state === "results";
+  resultsScreen.hidden = state !== "results";
+  startButton.hidden = state !== "idle";
+  finishButton.hidden = state !== "running";
+  cameraBox.hidden = state !== "running";
+  statsBox.hidden = state === "idle";
+}
 
 // Browser storage can fail (private mode), so every access is wrapped.
 function isSafetyHidden() {
@@ -80,6 +97,42 @@ async function loadPoseModel() {
   });
 }
 
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false,
+    });
+    video.srcObject = stream;
+    return true;
+  } catch (error) {
+    message.textContent = "Could not access the camera. Please allow camera access.";
+    return false;
+  }
+}
+
+// Turns the camera fully off (the camera light goes out).
+function stopCamera() {
+  if (stream) {
+    for (const track of stream.getTracks()) {
+      track.stop();
+    }
+  }
+  stream = null;
+  video.srcObject = null;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function startAnalysis() {
+  running = true;
+  animationId = requestAnimationFrame(detectPose);
+}
+
+function stopAnalysis() {
+  running = false;
+  cancelAnimationFrame(animationId);
+}
+
 // Shows and speaks feedback. Speaks only when the state changes.
 function giveFeedback(state, text, spokenText) {
   feedbackText.textContent = text;
@@ -91,46 +144,11 @@ function giveFeedback(state, text, spokenText) {
   }
 }
 
-// Ends the current set: shows the summary, says it out loud, starts fresh.
-function finishSet() {
-  summaryErrors.replaceChildren();
-
-  if (!session.hasData()) {
-    summaryReps.textContent = "No set recorded yet.";
-    summaryScore.textContent = "Get into plank position first, then finish your set.";
-    summaryBox.hidden = false;
+function detectPose() {
+  if (!running) {
     return;
   }
 
-  const result = session.summary();
-  summaryReps.textContent = `Reps: ${result.reps}`;
-  summaryScore.textContent = `Form score: ${result.score}%`;
-
-  if (result.errors.length === 0) {
-    const item = document.createElement("li");
-    item.textContent = "No form issues found. Nice work!";
-    summaryErrors.appendChild(item);
-  } else {
-    for (const error of result.errors) {
-      const item = document.createElement("li");
-      item.textContent = error;
-      summaryErrors.appendChild(item);
-    }
-  }
-  summaryBox.hidden = false;
-
-  speak(`Set finished. ${result.reps} reps. Form score ${result.score} percent.`, {
-    priority: true,
-  });
-
-  // Start fresh for the next set
-  session = createSession();
-  repCounter = createRepCounter();
-  repsText.textContent = "Reps: 0";
-  lastState = null;
-}
-
-function detectPose() {
   if (video.videoWidth > 0) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -218,13 +236,10 @@ function detectPose() {
       }
     }
   }
-  requestAnimationFrame(detectPose);
+  animationId = requestAnimationFrame(detectPose);
 }
 
-safetyLink.addEventListener("click", showSafetyNotice);
-finishButton.addEventListener("click", finishSet);
-
-startButton.addEventListener("click", async () => {
+async function startTraining() {
   // Show the safety notice first, unless the user chose to hide it
   if (!isSafetyHidden()) {
     const accepted = await showSafetyNotice();
@@ -233,24 +248,80 @@ startButton.addEventListener("click", async () => {
     }
   }
 
+  const cameraStarted = await startCamera();
+  if (!cameraStarted) {
+    return;
+  }
+  setUiState("running");
+
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false,
-    });
-    video.srcObject = stream;
+    if (!poseLandmarker) {
+      message.textContent = "Loading your coach...";
+      await loadPoseModel();
+    }
+    message.textContent = "";
+    startAnalysis();
   } catch (error) {
-    message.textContent = "Could not access the camera. Please allow camera access.";
+    console.error(error);
+    stopCamera();
+    setUiState("idle");
+    message.textContent = "Could not load the pose model.";
+  }
+}
+
+// Ends the set: stops everything, turns the camera off, shows only the results.
+function finishSet() {
+  stopAnalysis();
+  stopCamera();
+  window.speechSynthesis.cancel();
+  summaryErrors.replaceChildren();
+
+  if (!session.hasData()) {
+    summaryReps.textContent = "No set recorded yet.";
+    summaryScore.textContent = "Get into plank position first, then finish your set.";
+    setUiState("results");
     return;
   }
 
-  try {
-    message.textContent = "Loading your coach...";
-    await loadPoseModel();
-    message.textContent = "Your coach is ready.";
-    detectPose();
-  } catch (error) {
-    console.error(error);
-    message.textContent = "Could not load the pose model.";
+  const result = session.summary();
+  summaryReps.textContent = `Reps: ${result.reps}`;
+  summaryScore.textContent = `Form score: ${result.score}%`;
+
+  if (result.errors.length === 0) {
+    const item = document.createElement("li");
+    item.textContent = "No form issues found. Nice work!";
+    summaryErrors.appendChild(item);
+  } else {
+    for (const error of result.errors) {
+      const item = document.createElement("li");
+      item.textContent = error;
+      summaryErrors.appendChild(item);
+    }
   }
-});
+
+  setUiState("results");
+  speak(`Set finished. ${result.reps} reps. Form score ${result.score} percent.`, {
+    priority: true,
+  });
+}
+
+// Goes back to the start screen with a clean slate.
+function startNewSet() {
+  window.speechSynthesis.cancel();
+  session = createSession();
+  repCounter = createRepCounter();
+  lastState = null;
+  lastPartialAt = 0;
+  message.textContent = "";
+  angleText.textContent = "";
+  feedbackText.textContent = "";
+  repsText.textContent = "";
+  setUiState("idle");
+}
+
+safetyLink.addEventListener("click", showSafetyNotice);
+startButton.addEventListener("click", startTraining);
+finishButton.addEventListener("click", finishSet);
+newSetButton.addEventListener("click", startNewSet);
+
+setUiState("idle");

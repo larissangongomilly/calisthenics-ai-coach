@@ -9,26 +9,37 @@
   <body>
     <main>
       <h1>Calisthenics AI Coach</h1>
-      <p>Your AI coach for better form.</p>
-      <button id="start-button">Start training</button>
-      <p id="message"></p>
-      <div class="camera-box">
-        <video id="camera" autoplay playsinline muted></video>
-        <canvas id="overlay"></canvas>
-      </div>
-      <p id="angle"></p>
-      <p id="feedback"></p>
-      <p id="reps"></p>
-      <button id="finish-button">Finish set</button>
 
-      <section id="summary" hidden>
-        <h2>Set summary</h2>
-        <p id="summary-reps"></p>
-        <p id="summary-score"></p>
-        <ul id="summary-errors"></ul>
+      <section id="training-screen">
+        <p>Your AI coach for better form.</p>
+        <button id="start-button">Start training</button>
+        <p id="message"></p>
+
+        <div id="camera-box" class="camera-box" hidden>
+          <video id="camera" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+        </div>
+
+        <div id="stats" hidden>
+          <p id="angle"></p>
+          <p id="feedback"></p>
+          <p id="reps"></p>
+        </div>
+
+        <button id="finish-button" hidden>Finish set</button>
+
+        <button id="safety-link" class="link-button">Safety info</button>
       </section>
 
-      <button id="safety-link" class="link-button">Safety info</button>
+      <section id="results-screen" hidden>
+        <div id="summary">
+          <h2>Set summary</h2>
+          <p id="summary-reps"></p>
+          <p id="summary-score"></p>
+          <ul id="summary-errors"></ul>
+        </div>
+        <button id="new-set-button">New set</button>
+      </section>
     </main>
 
     <dialog id="safety-dialog">
