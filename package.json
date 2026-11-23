@@ -4,7 +4,7 @@
   "description": "An AI coach that watches your calisthenics form through the camera and gives you live spoken feedback.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/",
     "dev": "vite",
     "dev:phone": "vite --mode phone",
     "build": "vite build",
@@ -17,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/larissangongomilly/calisthenics-ai-coach/issues"
   },
