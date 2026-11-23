@@ -364,7 +364,7 @@ function openTraining(skillId) {
 
 async function loadPoseModel() {
   const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${__MEDIAPIPE_VERSION__}/wasm`
   );
 
   poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
@@ -683,6 +683,14 @@ doneButton.addEventListener("click", () => {
 });
 
 // ---------- Start ----------
+
+// Offline support and model cache for the installed app (see public/sw.js).
+// Not in development, so the dev server always shows fresh files.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch((error) => {
+    console.warn("Service worker not registered:", error);
+  });
+}
 
 if (userName) {
   showTab("home");
