@@ -45,6 +45,8 @@ Open the address that Vite shows (usually `http://localhost:5173`) and allow cam
 
 **Test on your phone (same Wi-Fi):** run `npm run dev:phone` and open the `Network` address it prints (for example `https://192.168.0.10:5173`) on your phone. The dev server uses a self-signed certificate, so the browser shows a security warning once; accept it to continue. HTTPS is needed because browsers only allow the camera on secure pages.
 
+**Production build:** `npm run build` creates the app in `dist/`. The test version is hosted on Cloudflare Pages (build command `npm run build`, output folder `dist`) behind Cloudflare Access, so only invited people can open it.
+
 **Tip:** Place the camera so your whole body is visible. Most skills need a side view; each skill card tells you how to film.
 
 ## How it works
