@@ -1,15 +1,35 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_SETTINGS, cleanSettings, loadSettings, updateSettings } from "../src/settings.js";
+import { DEFAULT_SETTINGS, cleanSettings, guideStartsOn, loadSettings, updateSettings } from "../src/settings.js";
 import { memoryStorage } from "./helpers/fake-pose.js";
 
-test("settings start with defaults and drop bad values", () => {
-  assert.deepEqual(loadSettings(memoryStorage()), DEFAULT_SETTINGS);
-  assert.deepEqual(cleanSettings({ voice: "yes", volume: 5, camera: "side", sets: 11, restSeconds: 50, extra: 1 }), {
-    ...DEFAULT_SETTINGS,
-    volume: 1,
+test("defaults: 5 s countdown, guide the first time, normal strictness, skeleton on", () => {
+  const settings = loadSettings(memoryStorage());
+  assert.deepEqual(settings, DEFAULT_SETTINGS);
+  assert.equal(settings.countdown, 5);
+  assert.equal(settings.setupMode, "first");
+  assert.equal(settings.strictness, "normal");
+  assert.equal(settings.skeleton, true);
+  assert.equal(settings.mirror, true);
+  assert.equal(settings.coachTalk, "full");
+  assert.equal(settings.vibration, true);
+});
+
+test("bad and unknown values fall back to the defaults", () => {
+  const settings = cleanSettings({
+    voice: "yes",
+    camera: "side",
+    sets: 11,
+    restSeconds: 50,
+    countdown: 4,
+    setupMode: "sometimes",
+    strictness: "hard",
+    skeleton: 1,
+    coachTalk: "loud",
+    volume: 0.5,
+    extra: 1,
   });
-  assert.equal(cleanSettings({ volume: 0 }).volume, 0.2);
+  assert.deepEqual(settings, DEFAULT_SETTINGS);
   assert.equal(cleanSettings({ sets: 2.5 }).sets, DEFAULT_SETTINGS.sets);
   assert.equal(cleanSettings({ restSeconds: 700 }).restSeconds, DEFAULT_SETTINGS.restSeconds);
 });
@@ -23,10 +43,21 @@ test("users can pick their own sets and rest time", () => {
 
 test("settings are saved and loaded", () => {
   const storage = memoryStorage();
-  updateSettings({ voice: false }, storage);
-  updateSettings({ camera: "environment" }, storage);
-  updateSettings({ sets: 5, restSeconds: 120 }, storage);
-  assert.deepEqual(loadSettings(storage), { voice: false, volume: 1, camera: "environment", sets: 5, restSeconds: 120 });
+  updateSettings({ voice: false, countdown: 10, strictness: "strict" }, storage);
+  updateSettings({ camera: "environment", skeleton: false, mirror: false }, storage);
+  updateSettings({ coachTalk: "counts", vibration: false, setupMode: "never" }, storage);
+  assert.deepEqual(loadSettings(storage), {
+    ...DEFAULT_SETTINGS,
+    voice: false,
+    countdown: 10,
+    strictness: "strict",
+    camera: "environment",
+    skeleton: false,
+    mirror: false,
+    coachTalk: "counts",
+    vibration: false,
+    setupMode: "never",
+  });
 });
 
 test("blocked storage still returns usable settings", () => {
@@ -40,4 +71,11 @@ test("blocked storage still returns usable settings", () => {
   };
   assert.deepEqual(loadSettings(blocked), DEFAULT_SETTINGS);
   assert.equal(updateSettings({ voice: false }, blocked).voice, false);
+});
+
+test("the setup mode decides whether the guide starts switched on", () => {
+  assert.equal(guideStartsOn("first", false), true);
+  assert.equal(guideStartsOn("first", true), false);
+  assert.equal(guideStartsOn("always", true), true);
+  assert.equal(guideStartsOn("never", false), false);
 });

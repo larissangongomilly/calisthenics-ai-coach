@@ -13,12 +13,18 @@ It runs in the browser. There is nothing to install, and **no images or video le
 </p>
 
 ## Features
-- **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab with settings, switched with a bottom tab bar
-- **Installable app (PWA):** add it to the home screen, it opens full screen and keeps the app and pose model on the device for offline use
+- **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab, switched with a bottom tab bar
+- **Works offline** once loaded (a native App Store and Play Store version is planned)
 - **Workouts with sets and rest:** set your own number of sets (1 to 10) and rest time (15 seconds to 10 minutes, default 3 sets with 1:30 rest); a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
 - **Stats tab:** reps per week, a training calendar, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
-- **Settings:** voice on/off and volume, front or back camera (also switchable while filming), show guides and the safety notice again, reset progress
+- **Profile:** photo, current level, overview (skills completed, week streak, training days, total reps), a goal skill with the way there, badges, and optional body data
+- **Settings:**
+  - Training: countdown before each set (off, 3, 5 or 10 s, default 5), guided setup (first time, always or never), strictness (easy, normal or strict)
+  - Camera: front or back (also switchable while filming), body lines on the video, mirror the front camera
+  - Coach: voice on/off (the phone sets the volume), counts and form tips or counts only, vibration
+  - Help and data: show guides and the safety notice again, reset progress
+- **Times as minutes:seconds** everywhere (for example 1:30)
 - **Live voice and visual feedback** during the exercise (not after it), with a calm, encouraging tone
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range

@@ -1,31 +1,50 @@
-// App settings, stored in the browser (like the name and the progress).
+// App settings, stored on the device (like the name and the progress).
 import { REST_LIMITS, SETS_LIMITS, fitsLimits } from "./workout.js";
 
 const SETTINGS_KEY = "settings";
 
 export const CAMERAS = ["user", "environment"]; // front, back
+export const COUNTDOWNS = [0, 3, 5, 10]; // seconds before a set starts
+export const SETUP_MODES = ["first", "always", "never"]; // when the guided setup runs
+export const STRICTNESS = ["easy", "normal", "strict"]; // how strict reps and holds are judged
+export const COACH_TALK = ["full", "counts"]; // form tips and counts, or counts only
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  voice: true, // spoken coaching on or off
-  volume: 1, // 0.2 to 1
+  // Training
+  countdown: 5,
+  setupMode: "first", // guide into the position the first time only
+  strictness: "normal",
+  sets: 3, // sets per workout (see SETS_LIMITS)
+  restSeconds: 90, // rest between sets (see REST_LIMITS)
+  // Camera
   camera: "user", // "user" = front camera, "environment" = back camera
-  sets: 3, // sets per workout (the user can change it, see SETS_LIMITS)
-  restSeconds: 90, // rest between sets (the user can change it, see REST_LIMITS)
+  skeleton: true, // draw the body lines on the video
+  mirror: true, // show the front camera like a mirror
+  // Coach
+  voice: true, // spoken coaching on or off (the phone sets the volume)
+  coachTalk: "full",
+  vibration: true,
 });
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
+const oneOf = (list, value, fallback) => (list.includes(value) ? value : fallback);
+const bool = (value, fallback) => (typeof value === "boolean" ? value : fallback);
 
 // Keeps only known settings with valid values. Anything else gets the default.
 export function cleanSettings(raw) {
   const data = raw && typeof raw === "object" ? raw : {};
+  const d = DEFAULT_SETTINGS;
   return {
-    voice: typeof data.voice === "boolean" ? data.voice : DEFAULT_SETTINGS.voice,
-    volume: Number.isFinite(data.volume) ? clamp(data.volume, 0.2, 1) : DEFAULT_SETTINGS.volume,
-    camera: CAMERAS.includes(data.camera) ? data.camera : DEFAULT_SETTINGS.camera,
-    sets: fitsLimits(data.sets, SETS_LIMITS) ? data.sets : DEFAULT_SETTINGS.sets,
-    restSeconds: fitsLimits(data.restSeconds, REST_LIMITS) ? data.restSeconds : DEFAULT_SETTINGS.restSeconds,
+    countdown: oneOf(COUNTDOWNS, data.countdown, d.countdown),
+    setupMode: oneOf(SETUP_MODES, data.setupMode, d.setupMode),
+    strictness: oneOf(STRICTNESS, data.strictness, d.strictness),
+    sets: fitsLimits(data.sets, SETS_LIMITS) ? data.sets : d.sets,
+    restSeconds: fitsLimits(data.restSeconds, REST_LIMITS) ? data.restSeconds : d.restSeconds,
+    camera: oneOf(CAMERAS, data.camera, d.camera),
+    skeleton: bool(data.skeleton, d.skeleton),
+    mirror: bool(data.mirror, d.mirror),
+    voice: bool(data.voice, d.voice),
+    coachTalk: oneOf(COACH_TALK, data.coachTalk, d.coachTalk),
+    vibration: bool(data.vibration, d.vibration),
   };
 }
 
@@ -47,4 +66,11 @@ export function updateSettings(changes, storage = globalThis.localStorage) {
     // Not saved: the settings still apply until the app is closed.
   }
   return settings;
+}
+
+// Whether the guided setup starts switched on for a skill.
+export function guideStartsOn(setupMode, seenBefore) {
+  if (setupMode === "always") return true;
+  if (setupMode === "never") return false;
+  return !seenBefore;
 }

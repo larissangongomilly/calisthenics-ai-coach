@@ -2,12 +2,10 @@ let lastSpokenAt = 0;
 const COOLDOWN_MS = 4000;
 
 let enabled = true;
-let volume = 1;
 
 // Applies the voice settings (see settings.js).
 export function setVoiceOptions(options) {
   enabled = options.voice;
-  volume = options.volume;
   if (!enabled) {
     window.speechSynthesis?.cancel();
   }
@@ -34,7 +32,7 @@ export function speak(text, { priority = false } = {}) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
   utterance.rate = 0.95;
-  utterance.volume = volume;
+  // No volume here: the phone's own volume buttons decide.
   window.speechSynthesis.speak(utterance);
 
   lastSpokenAt = now;

@@ -644,7 +644,6 @@ p {
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--surface);
-  transform: scaleX(-1);
 }
 
 .camera-box video {
@@ -1158,6 +1157,11 @@ dialog::backdrop {
 
 .segmented .chip {
   flex: 1;
+  min-width: 0;
+  height: auto;
+  min-height: 40px;
+  padding: 6px 8px;
+  line-height: 1.2;
 }
 
 .button-first {
@@ -1170,9 +1174,9 @@ dialog::backdrop {
   box-shadow: inset 0 0 0 2px #4a2a2e;
 }
 
-/* The back camera is not mirrored, the front camera is (like a mirror). */
-.camera-box.is-back {
-  transform: none;
+/* The front camera is shown like a mirror, unless the user turned that off. */
+.camera-box.is-mirrored {
+  transform: scaleX(-1);
 }
 
 .camera-stage {
@@ -1493,4 +1497,227 @@ dialog::backdrop {
 
 .skill-chart {
   margin-top: 14px;
+}
+
+/* ---------- Countdown ---------- */
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+  background: rgba(15, 17, 21, 0.45);
+  color: var(--accent);
+  font-size: 120px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.countdown[hidden] {
+  display: none;
+}
+
+/* ---------- Profile ---------- */
+.app-bar-back {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.app-bar-back .icon-button {
+  margin-left: -10px;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0 4px;
+}
+
+.avatar {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 26px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.avatar-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.profile-level {
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#remove-photo {
+  margin: 0 0 4px;
+}
+
+#profile-tiles {
+  margin-top: 16px;
+}
+
+.goal-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.goal-box[hidden] {
+  display: none;
+}
+
+.goal-figure {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+
+.goal-box > div:last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.goal-text {
+  font-weight: 700;
+}
+
+.goal-bar {
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.goal-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.goal-box .settings-note {
+  margin-top: 6px;
+}
+
+.title-count {
+  margin-left: 6px;
+  color: var(--accent);
+  letter-spacing: 0;
+}
+
+.badge-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  --badge-color: var(--accent);
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  color: var(--muted);
+}
+
+.badge.is-earned {
+  border-color: var(--badge-color);
+  color: var(--text);
+}
+
+.badge-icon {
+  color: var(--locked);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.badge.is-earned .badge-icon {
+  color: var(--badge-color);
+}
+
+.badge-name {
+  font-weight: 800;
+}
+
+.badge-text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.optional {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.body-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.body-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.body-grid .text-input {
+  padding: 0 12px;
+}
+
+#name-form .button-block {
+  margin-top: 14px;
+}
+
+.toggle-row-flat.settings-label {
+  margin-top: 18px;
 }
