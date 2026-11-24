@@ -15,7 +15,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 ## Features
 - **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab with settings, switched with a bottom tab bar
 - **Installable app (PWA):** add it to the home screen, it opens full screen and keeps the app and pose model on the device for offline use
-- **Workouts with sets and rest:** pick 1 to 5 sets and a rest time; a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
+- **Workouts with sets and rest:** set your own number of sets (1 to 10) and rest time (15 seconds to 10 minutes, default 3 sets with 1:30 rest); a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
 - **Stats tab:** reps per week, a training calendar, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
 - **Settings:** voice on/off and volume, front or back camera, show guides and the safety notice again, reset progress

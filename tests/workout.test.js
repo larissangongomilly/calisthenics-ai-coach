@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createWorkout, describeRest, formatClock } from "../src/workout.js";
+import { REST_LIMITS, SETS_LIMITS, createWorkout, describeRest, formatClock, stepValue } from "../src/workout.js";
 
 const set = (reps, score, errors = []) => ({ reps, seconds: 0, score, errors });
 const practice = { isPractice: true, goalReached: false, newlyCompleted: false };
@@ -45,4 +45,15 @@ test("rest time words and clock", () => {
   assert.equal(formatClock(-3), "0:00");
   assert.equal(describeRest(90), "90 seconds");
   assert.equal(describeRest(120), "2 minutes");
+  assert.equal(describeRest(150), "2 minutes 30 seconds");
+});
+
+test("steppers stay inside the limits and on the step grid", () => {
+  assert.equal(stepValue(90, 1, REST_LIMITS), 105);
+  assert.equal(stepValue(90, -1, REST_LIMITS), 75);
+  assert.equal(stepValue(15, -1, REST_LIMITS), 15);
+  assert.equal(stepValue(600, 1, REST_LIMITS), 600);
+  assert.equal(stepValue(100, 1, REST_LIMITS), 120, "off-grid values snap back to the grid");
+  assert.equal(stepValue(10, 1, SETS_LIMITS), 10);
+  assert.equal(stepValue(1, -1, SETS_LIMITS), 1);
 });

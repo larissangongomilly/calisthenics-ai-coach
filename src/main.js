@@ -9,8 +9,8 @@ import { describeStreak, getStreak } from "./streak.js";
 import { isLevelUnlocked } from "./path.js";
 import { CAMERA_VIEWS, getSkill } from "./skills.js";
 import { loadName, saveName, cleanName } from "./profile.js";
-import { loadSettings, updateSettings } from "./settings.js";
-import { REST_CALLOUTS, REST_OPTIONS, SET_OPTIONS, createWorkout, describeRest, formatClock } from "./workout.js";
+import { DEFAULT_SETTINGS, loadSettings, updateSettings } from "./settings.js";
+import { REST_CALLOUTS, REST_LIMITS, SETS_LIMITS, createWorkout, describeRest, formatClock, stepValue } from "./workout.js";
 import { renderStats } from "./stats-view.js";
 import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
@@ -105,8 +105,15 @@ const closeTrainingButton = $("#close-training");
 const skillCamera = $("#skill-camera");
 const skillCue = $("#skill-cue");
 const skillBeta = $("#skill-beta");
-const setsChoice = $("#sets-choice");
-const restChoice = $("#rest-choice");
+const workoutParts = {
+  setsDown: $("#sets-down"),
+  setsUp: $("#sets-up"),
+  setsValue: $("#sets-value"),
+  restDown: $("#rest-down"),
+  restUp: $("#rest-up"),
+  restValue: $("#rest-value"),
+  reset: $("#workout-default"),
+};
 const guideOption = $("#guide-option");
 const guideToggle = $("#guide-toggle");
 const skipGuideButton = $("#skip-guide");
@@ -495,33 +502,36 @@ function openTraining(skillId) {
 
 // ---------- Sets and rest ----------
 
-function renderChoice(container, options, active, label, onPick) {
-  container.replaceChildren(
-    ...options.map((value) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "chip";
-      button.textContent = label(value);
-      button.setAttribute("role", "radio");
-      button.setAttribute("aria-checked", String(value === active));
-      button.classList.toggle("is-active", value === active);
-      button.addEventListener("click", () => onPick(value));
-      return button;
-    })
-  );
+function renderWorkoutChoices() {
+  const { sets, restSeconds } = settings;
+  const parts = workoutParts;
+  parts.setsValue.textContent = String(sets);
+  parts.restValue.textContent = formatClock(restSeconds);
+  parts.setsDown.disabled = sets <= SETS_LIMITS.min;
+  parts.setsUp.disabled = sets >= SETS_LIMITS.max;
+  parts.restDown.disabled = restSeconds <= REST_LIMITS.min;
+  parts.restUp.disabled = restSeconds >= REST_LIMITS.max;
+  const isDefault = sets === DEFAULT_SETTINGS.sets && restSeconds === DEFAULT_SETTINGS.restSeconds;
+  parts.reset.hidden = isDefault;
+  parts.reset.textContent = `Back to default (${DEFAULT_SETTINGS.sets} sets · ${formatClock(DEFAULT_SETTINGS.restSeconds)})`;
 }
 
-function renderWorkoutChoices() {
-  renderChoice(setsChoice, SET_OPTIONS, settings.sets, String, (sets) => {
-    settings = updateSettings({ sets });
-    renderWorkoutChoices();
-  });
-  const restLabel = (seconds) => (seconds < 120 ? `${seconds} s` : `${seconds / 60} min`);
-  renderChoice(restChoice, REST_OPTIONS, settings.restSeconds, restLabel, (restSeconds) => {
-    settings = updateSettings({ restSeconds });
-    renderWorkoutChoices();
-  });
+function changeWorkoutChoice(changes) {
+  settings = updateSettings(changes);
+  renderWorkoutChoices();
 }
+
+workoutParts.setsDown.addEventListener("click", () => changeWorkoutChoice({ sets: stepValue(settings.sets, -1, SETS_LIMITS) }));
+workoutParts.setsUp.addEventListener("click", () => changeWorkoutChoice({ sets: stepValue(settings.sets, 1, SETS_LIMITS) }));
+workoutParts.restDown.addEventListener("click", () =>
+  changeWorkoutChoice({ restSeconds: stepValue(settings.restSeconds, -1, REST_LIMITS) })
+);
+workoutParts.restUp.addEventListener("click", () =>
+  changeWorkoutChoice({ restSeconds: stepValue(settings.restSeconds, 1, REST_LIMITS) })
+);
+workoutParts.reset.addEventListener("click", () =>
+  changeWorkoutChoice({ sets: DEFAULT_SETTINGS.sets, restSeconds: DEFAULT_SETTINGS.restSeconds })
+);
 
 function showSetLabel() {
   setLabel.textContent = workout && workout.sets > 1 ? `Set ${workout.currentSet} of ${workout.sets}` : "";

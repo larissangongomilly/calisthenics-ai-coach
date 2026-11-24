@@ -2,8 +2,9 @@
 // Each set is saved to the progress when it ends (see progress.js); this
 // module only keeps the sets of the running workout for the summary.
 
-export const SET_OPTIONS = [1, 2, 3, 4, 5];
-export const REST_OPTIONS = [60, 90, 120, 180]; // seconds
+// Users pick their own sets and rest time inside these limits.
+export const SETS_LIMITS = Object.freeze({ min: 1, max: 10, step: 1 });
+export const REST_LIMITS = Object.freeze({ min: 15, max: 600, step: 15 }); // seconds
 export const REST_CALLOUTS = [30, 10, 3, 2, 1]; // seconds left that the coach says out loud
 
 // Strongest progress news first.
@@ -63,7 +64,23 @@ export function formatClock(totalSeconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-// Words for a rest time: 90 → "90 seconds", 120 → "2 minutes".
+// Moves a value one step up (direction 1) or down (-1) and keeps it on the
+// step grid inside the limits.
+export function stepValue(value, direction, { min, max, step }) {
+  const onGrid = Math.round((value - min) / step) * step + min;
+  return Math.min(max, Math.max(min, onGrid + direction * step));
+}
+
+// True when the value is allowed by the limits.
+export function fitsLimits(value, { min, max, step }) {
+  return Number.isInteger(value) && value >= min && value <= max && (value - min) % step === 0;
+}
+
+// Words for a rest time: 90 → "90 seconds", 120 → "2 minutes",
+// 150 → "2 minutes 30 seconds".
 export function describeRest(seconds) {
-  return seconds % 60 === 0 && seconds >= 120 ? `${seconds / 60} minutes` : `${seconds} seconds`;
+  if (seconds < 120) return `${seconds} seconds`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return rest === 0 ? `${minutes} minutes` : `${minutes} minutes ${rest} seconds`;
 }

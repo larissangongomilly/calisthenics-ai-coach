@@ -241,10 +241,23 @@
             </p>
           </div>
           <div class="settings-card workout-card">
-            <p class="field-label">Sets</p>
-            <div id="sets-choice" class="segmented" role="radiogroup" aria-label="Sets"></div>
-            <p class="field-label settings-label">Rest between sets</p>
-            <div id="rest-choice" class="segmented" role="radiogroup" aria-label="Rest between sets"></div>
+            <div class="stepper-row">
+              <span class="stepper-label">Sets</span>
+              <div class="stepper">
+                <button id="sets-down" type="button" class="stepper-button" aria-label="Fewer sets">−</button>
+                <output id="sets-value" class="stepper-value" aria-live="polite"></output>
+                <button id="sets-up" type="button" class="stepper-button" aria-label="More sets">+</button>
+              </div>
+            </div>
+            <div class="stepper-row">
+              <span class="stepper-label">Rest between sets</span>
+              <div class="stepper">
+                <button id="rest-down" type="button" class="stepper-button" aria-label="Shorter rest">−</button>
+                <output id="rest-value" class="stepper-value" aria-live="polite"></output>
+                <button id="rest-up" type="button" class="stepper-button" aria-label="Longer rest">+</button>
+              </div>
+            </div>
+            <button id="workout-default" type="button" class="link-button" hidden></button>
           </div>
           <label id="guide-option" class="toggle-row" hidden>
             <span>
