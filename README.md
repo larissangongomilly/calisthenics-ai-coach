@@ -93,3 +93,16 @@ Warm up first, use a stable surface or bar, and stop right away if you feel pain
 
 ## About
 Built with AI assistance (Claude). Product idea, design decisions and testing by Larissa.
+
+## License
+Copyright © 2026 Larissa. **All rights reserved.**
+
+You may **look at the code**, for example as part of my portfolio. That is the only permission given. Without my written permission you may **not**:
+
+- copy or reuse the code, in whole or in part
+- change it or build on it (no modified versions)
+- share, publish or sell it, or use it in your own apps or products
+
+This is not an open source project, and no open source license applies. If you want to use something from it, please ask me first.
+
+Third-party libraries (such as MediaPipe) keep their own licenses.

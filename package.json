@@ -16,7 +16,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "private": true,
   "type": "module",
   "bugs": {
     "url": "https://github.com/larissangongomilly/calisthenics-ai-coach/issues"
