@@ -1,6 +1,7 @@
 // Draws the app's lists: the home road, the skills list and the skill sheet.
 import { CAMERA_VIEWS, LEVELS, RULES, TRACKS, getCompletionGoal } from "./skills.js";
 import { getSkillPath } from "./path.js";
+import { formatClock } from "./workout.js";
 import { STATE_COLORS, getSkillColors, renderFigure } from "./figures.js";
 
 // Background colors behind figures (must match the CSS), so the outline works.
@@ -50,7 +51,7 @@ export function skillStatus(skill) {
   if (skill.practiced) {
     const best =
       skill.measure === "hold"
-        ? `${skill.bestSeconds} s`
+        ? formatClock(skill.bestSeconds)
         : `${skill.bestReps} ${skill.bestReps === 1 ? "rep" : "reps"}`;
     return `Best: ${best} · ${skill.bestScore}%`;
   }
@@ -298,7 +299,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
 
 function formatAmount(skill, set) {
   if (skill.measure === "hold") {
-    return `${set.seconds} s`;
+    return formatClock(set.seconds);
   }
   return `${set.reps} ${set.reps === 1 ? "rep" : "reps"}`;
 }
@@ -323,7 +324,7 @@ function fillSkillProgress(parts, skill) {
 
   const isHold = skill.measure === "hold";
   parts.bestLabel.textContent = isHold ? "Best hold" : "Best reps";
-  parts.best.textContent = isHold ? `${skill.bestSeconds} s` : String(skill.bestReps);
+  parts.best.textContent = isHold ? formatClock(skill.bestSeconds) : String(skill.bestReps);
   parts.bestScore.textContent = `${skill.bestScore}%`;
   parts.sets.textContent = String(history.length);
 

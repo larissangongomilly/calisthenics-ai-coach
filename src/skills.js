@@ -2,6 +2,7 @@
 // Preliminary, not reviewed by calisthenics experts.
 // See docs/skill-path.md (rules) and docs/technique-guide.md (technique per skill).
 // All rules and numbers live here, so they can be changed in one place.
+import { formatClock } from "./workout.js";
 
 export const RULES = {
   // A set reaches the goal with at least the skill's goal (reps or seconds,
@@ -240,7 +241,7 @@ export function getCompletionGoal(skill) {
   const { daysNeeded } = RULES.completion;
   const amount =
     skill.measure === "hold"
-      ? `Hold for ${skill.goal} s`
+      ? `Hold for ${formatClock(skill.goal)}`
       : `${skill.goal} clean ${skill.goal === 1 ? "rep" : "reps"} in one set`;
   return `${amount} with at least ${minFormScore}% form, on ${daysNeeded} different days`;
 }

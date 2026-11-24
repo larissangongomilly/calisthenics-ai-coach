@@ -2,6 +2,7 @@
 // progress curve per skill and personal bests. Charts are plain SVG.
 // Tapping a bar, day or point shows its exact value in the caption below.
 import { getSkill } from "./skills.js";
+import { formatClock } from "./workout.js";
 import { overview, personalBests, skillSeries, trainingCalendar, weeklyTotals } from "./stats.js";
 
 const ACCENT = "#c6f432";
@@ -104,7 +105,7 @@ function renderWeeklyChart(container, caption, weeks) {
       );
     }
     const label = svg("text", { x: x + barW / 2, y: H - 6, "text-anchor": "middle", class: "chart-axis" });
-    label.textContent = i === weeks.length - 1 ? "This wk" : dayLabel(week.weekStart);
+    label.textContent = i === weeks.length - 1 ? "Now" : dayLabel(week.weekStart);
     // Only every other date label fits on a phone.
     if (i % 2 === (weeks.length - 1) % 2) group.append(label);
     chart.append(group);
@@ -118,7 +119,7 @@ function renderWeeklyChart(container, caption, weeks) {
     (i) => {
       const week = weeks[i];
       const when = i === weeks.length - 1 ? "This week" : `Week of ${dayLabel(week.weekStart)}`;
-      const holds = week.holdSeconds > 0 ? ` · ${week.holdSeconds} s holds` : "";
+      const holds = week.holdSeconds > 0 ? ` · ${formatClock(week.holdSeconds)} holds` : "";
       return `${when}: ${plural(week.reps, "rep")}${holds} · ${plural(week.sets, "set")}`;
     },
     weeks.length - 1
@@ -182,7 +183,7 @@ function renderSkillChart(container, caption, skill, points) {
   }
 
   const H = 160;
-  const left = 30;
+  const left = 38;
   const right = 12;
   const top = 14;
   const bottom = 14;
@@ -202,8 +203,19 @@ function renderSkillChart(container, caption, skill, points) {
   const goalY = yOf(skill.goal);
   chart.append(svg("line", { x1: left, x2: W - right, y1: goalY, y2: goalY, stroke: MUTED, "stroke-width": 1, "stroke-dasharray": "4 4" }));
   const goalLabel = svg("text", { x: left - 6, y: goalY + 4, "text-anchor": "end", class: "chart-axis" });
-  goalLabel.textContent = String(skill.goal);
+  const isHold = skill.measure === "hold";
+  goalLabel.textContent = isHold ? formatClock(skill.goal) : String(skill.goal);
   chart.append(goalLabel);
+
+  // Best value as the top label, so the height of the line can be read.
+  const best = Math.max(...shown.map((p) => p.value));
+  if (yOf(best) < goalY - 14) {
+    const bestY = yOf(best);
+    chart.append(svg("line", { x1: left, x2: W - right, y1: bestY, y2: bestY, stroke: GRID, "stroke-width": 1 }));
+    const bestLabel = svg("text", { x: left - 6, y: bestY + 4, "text-anchor": "end", class: "chart-axis" });
+    bestLabel.textContent = isHold ? formatClock(best) : String(best);
+    chart.append(bestLabel);
+  }
 
   if (shown.length > 1) {
     const d = shown.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(i)},${yOf(p.value)}`).join(" ");
@@ -226,7 +238,7 @@ function renderSkillChart(container, caption, skill, points) {
     caption,
     (i) => {
       const p = shown[i];
-      const amount = skill.measure === "hold" ? `${p.value} s` : plural(p.value, "rep");
+      const amount = skill.measure === "hold" ? formatClock(p.value) : plural(p.value, "rep");
       return `${setDate.format(new Date(p.date))}: ${amount} · ${p.score}% form · goal ${skill.goal} ${unit}`;
     },
     shown.length - 1
@@ -244,7 +256,7 @@ function renderBests(list, bests) {
       name.textContent = best.completed ? `${best.name} ✓` : best.name;
       const value = document.createElement("span");
       value.className = "history-value";
-      value.textContent = `${best.measure === "hold" ? `${best.best} s` : plural(best.best, "rep")} · ${best.bestScore}%`;
+      value.textContent = `${best.measure === "hold" ? formatClock(best.best) : plural(best.best, "rep")} · ${best.bestScore}%`;
       item.append(name, value);
       return item;
     })
