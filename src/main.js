@@ -123,6 +123,9 @@ const finishButton = $("#finish-button");
 const message = $("#message");
 const cameraBox = $("#camera-box");
 const video = $("#camera");
+const flipCameraButton = $("#flip-camera");
+// The flip button only shows when the phone has a front and a back camera.
+let hasTwoCameras = false;
 const canvas = $("#overlay");
 const ctx = canvas.getContext("2d");
 const statsBox = $("#stats");
@@ -462,6 +465,7 @@ function setTrainingState(state) {
   trainingState = state;
   trainingIntro.hidden = state !== "intro";
   cameraBox.hidden = state !== "running";
+  flipCameraButton.hidden = state !== "running" || !hasTwoCameras;
   restBox.hidden = state !== "rest";
   statsBox.hidden = state === "intro" || state === "rest";
   pauseButton.hidden = state === "intro" || state === "rest";
@@ -636,12 +640,45 @@ async function startCamera() {
     });
     video.srcObject = stream;
     cameraBox.classList.toggle("is-back", settings.camera === "environment");
+    // Device lists are only complete after camera access was allowed.
+    checkCameras();
     return true;
   } catch (error) {
     message.textContent = "Could not access the camera. Please allow camera access.";
     return false;
   }
 }
+
+async function checkCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    hasTwoCameras = devices.filter((device) => device.kind === "videoinput").length > 1;
+  } catch (error) {
+    hasTwoCameras = false;
+  }
+  flipCameraButton.hidden = trainingState !== "running" || !hasTwoCameras;
+}
+
+// Switches between front and back camera while filming. The set keeps running.
+async function flipCamera() {
+  const previous = settings.camera;
+  flipCameraButton.disabled = true;
+  stopCamera();
+  settings = updateSettings({ camera: previous === "user" ? "environment" : "user" });
+  let started = await startCamera();
+  if (!started) {
+    // The other camera did not start: go back to the one that worked.
+    settings = updateSettings({ camera: previous });
+    started = await startCamera();
+  }
+  if (started) {
+    message.textContent = "";
+  }
+  renderProfile();
+  flipCameraButton.disabled = false;
+}
+
+flipCameraButton.addEventListener("click", flipCamera);
 
 // Turns the camera fully off (the camera light goes out).
 function stopCamera() {
