@@ -18,7 +18,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Workouts with sets and rest:** set your own number of sets (1 to 10) and rest time (15 seconds to 10 minutes, default 3 sets with 1:30 rest); a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
 - **Stats tab:** reps per week, a training calendar, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
-- **Settings:** voice on/off and volume, front or back camera, show guides and the safety notice again, reset progress
+- **Settings:** voice on/off and volume, front or back camera (also switchable while filming), show guides and the safety notice again, reset progress
 - **Live voice and visual feedback** during the exercise (not after it), with a calm, encouraging tone
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range
