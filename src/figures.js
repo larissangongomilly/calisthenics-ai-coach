@@ -41,7 +41,8 @@ const POSES = {
   "adv-tuck-planche": ["floor", [64, 56], [14, 60, 26, 70, 34, 58, 54, 58], [54, 58, 51, 71, 48, 84]],
   "straddle-front-lever": ["bar12", [28, 33], [60, 36, 40, 36], [60, 36, 76, 31, 92, 28], [60, 36, 76, 41, 92, 44], [40, 36, 45, 24, 50, 12]],
   "back-lever": ["bar12", [30, 40], [92, 36, 78, 36, 62, 36, 40, 36], [40, 36, 45, 24, 50, 12]],
-  "ring-muscle-up": ["rings40", [56, 12], [44, 80, 46, 62, 48, 46, 52, 22], [52, 22, 51, 31, 50, 40]],
+  // Seen from behind, at the top: support on both rings, arms straight.
+  "ring-muscle-up": ["ringsPair", [50, 16], [43, 90, 45, 72, 50, 54, 50, 29], [50, 54, 55, 72, 57, 90], [40, 29, 60, 29], [40, 29, 35, 41, 30, 53], [60, 29, 65, 41, 70, 53]],
   "free-handstand-push-up": ["floor", [66, 80], [52, 16, 52, 32, 52, 48, 56, 72], [56, 72, 47, 79, 58, 86]],
   "one-arm-push-up": ["floor", [80, 53], [16, 80, 31, 73, 46, 66, 70, 58], [70, 58, 72, 70, 74, 82], [70, 58, 60, 62, 52, 60]],
   "straddle-planche": ["floor", [66, 56], [34, 56, 56, 58], [34, 56, 20, 51, 6, 48], [34, 56, 20, 61, 6, 64], [56, 58, 53, 71, 50, 84]],
@@ -127,8 +128,8 @@ function drawEquipment(type) {
     }
     case "pole":
       return floor(96) + line(20, 2, 20, 96, GEAR, 4);
-    case "rings40":
-      return ring(50, 40);
+    case "ringsPair":
+      return line(30, 2, 30, 52, "#5c6473", 1.5) + line(70, 2, 70, 52, "#5c6473", 1.5);
     case "rings44":
       return ring(50, 44);
     case "rings54":
@@ -138,6 +139,15 @@ function drawEquipment(type) {
     default:
       return "";
   }
+}
+
+// Equipment in front of the body, like rings held in the hands.
+function drawFrontEquipment(type, background) {
+  if (type !== "ringsPair") {
+    return "";
+  }
+  const heldRing = (x) => `<circle cx="${x}" cy="58" r="6" fill="${background}" stroke="${GEAR}" stroke-width="3"/>`;
+  return heldRing(30) + heldRing(70);
 }
 
 // ---------- Body ----------
@@ -189,7 +199,7 @@ export function renderFigure(skillId, color, background) {
     body = outlined(lines, head, color, background);
   }
 
-  return `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">${drawEquipment(equipment)}${body}</svg>`;
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">${drawEquipment(equipment)}${body}${drawFrontEquipment(equipment, background)}</svg>`;
 }
 
 export function hasFigure(skillId) {
