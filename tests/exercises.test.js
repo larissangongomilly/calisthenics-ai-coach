@@ -132,3 +132,29 @@ test("pull-up counts a full rep", () => {
   const frame = run(tracker, [175, 150, 120, 90, 60, 90, 120, 150, 175].map((a) => pose(pullUp(a))));
   assert.equal(frame.reps, 1);
 });
+
+test("strictness: easy counts slightly shallower reps", () => {
+  const shallow = [170, 150, 130, 110, 95, 110, 130, 150, 170].map((a) => pose(plank(a)));
+  assert.equal(run(createTracker(getExercise("push-up")), shallow).reps, 0, "normal: 95 degrees is not deep enough");
+  assert.equal(run(createTracker(getExercise("push-up"), { strictness: "easy" }), shallow).reps, 1);
+});
+
+test("strictness: strict only counts reps with good form", () => {
+  const sagging = [170, 150, 130, 110, 90, 80, 90, 110, 130, 150, 170].map((a) => pose(plank(a, 0.09)));
+  const good = [170, 150, 130, 110, 90, 80, 90, 110, 130, 150, 170].map((a) => pose(plank(a)));
+  const normal = createTracker(getExercise("push-up"));
+  assert.equal(run(normal, sagging).reps, 1);
+
+  const strict = createTracker(getExercise("push-up"), { strictness: "strict" });
+  let frame = run(strict, sagging);
+  assert.equal(frame.reps, 0);
+  frame = run(strict, good, 5000);
+  assert.equal(frame.reps, 1);
+  assert.ok(strict.summary().errors.some((e) => e.includes("strict mode")));
+});
+
+test("strictness: strict hold time only runs with good form", () => {
+  const strict = createTracker(getExercise("hollow-body-hold"), { strictness: "strict" });
+  const frame = run(strict, [...Array(100).fill(pose(hollow(10))), ...Array(100).fill(pose(hollow(25)))]);
+  assert.ok(frame.bestHoldSeconds >= 2 && frame.bestHoldSeconds <= 4, String(frame.bestHoldSeconds));
+});
