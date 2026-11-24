@@ -42,7 +42,7 @@ const POSES = {
   "straddle-front-lever": ["bar12", [28, 33], [60, 36, 40, 36], [60, 36, 76, 31, 92, 28], [60, 36, 76, 41, 92, 44], [40, 36, 45, 24, 50, 12]],
   "back-lever": ["bar12", [30, 40], [92, 36, 78, 36, 62, 36, 40, 36], [40, 36, 45, 24, 50, 12]],
   // Seen from behind, at the top: support on both rings, arms straight.
-  "ring-muscle-up": ["ringsPair", [50, 16], [43, 90, 45, 72, 50, 54, 50, 29], [50, 54, 55, 72, 57, 90], [40, 29, 60, 29], [40, 29, 35, 41, 30, 53], [60, 29, 65, 41, 70, 53]],
+  "ring-muscle-up": ["ringsPair", [50, 17], [44, 90, 46, 72, 50, 54, 50, 30], [50, 54, 54, 72, 56, 90], [42, 30, 58, 30], [42, 30, 36, 41, 31, 51], [58, 30, 64, 41, 69, 51]],
   "free-handstand-push-up": ["floor", [66, 80], [52, 16, 52, 32, 52, 48, 56, 72], [56, 72, 47, 79, 58, 86]],
   "one-arm-push-up": ["floor", [80, 53], [16, 80, 31, 73, 46, 66, 70, 58], [70, 58, 72, 70, 74, 82], [70, 58, 60, 62, 52, 60]],
   "straddle-planche": ["floor", [66, 56], [34, 56, 56, 58], [34, 56, 20, 51, 6, 48], [34, 56, 20, 61, 6, 64], [56, 58, 53, 71, 50, 84]],
@@ -129,7 +129,7 @@ function drawEquipment(type) {
     case "pole":
       return floor(96) + line(20, 2, 20, 96, GEAR, 4);
     case "ringsPair":
-      return line(30, 2, 30, 52, "#5c6473", 1.5) + line(70, 2, 70, 52, "#5c6473", 1.5);
+      return line(30, 2, 30, 50, "#5c6473", 1.5) + line(70, 2, 70, 50, "#5c6473", 1.5);
     case "rings44":
       return ring(50, 44);
     case "rings54":
@@ -146,7 +146,7 @@ function drawFrontEquipment(type, background) {
   if (type !== "ringsPair") {
     return "";
   }
-  const heldRing = (x) => `<circle cx="${x}" cy="58" r="6" fill="${background}" stroke="${GEAR}" stroke-width="3"/>`;
+  const heldRing = (x) => `<circle cx="${x}" cy="59" r="8" fill="${background}" stroke="${GEAR}" stroke-width="3"/>`;
   return heldRing(30) + heldRing(70);
 }
 
