@@ -19,7 +19,9 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Stats tab:** sets per week split by level, a training calendar that shows the date and the highest level trained each day, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
 - **Profile:** photo, current level, overview (skills completed, week streak, training days, total reps), a goal skill with the way there, badges, and optional body data
+- **Dark and light mode:** "Graphite and lime" and "Light and lime", following the phone or fixed in the settings
 - **Settings:**
+  - Appearance: system, dark or light
   - Training: countdown before each set (off, 3, 5 or 10 s, default 5), guided setup (first time, always or never), strictness (easy, normal or strict)
   - Camera: front or back (also switchable while filming), body lines on the video, mirror the front camera
   - Coach: voice on/off (the phone sets the volume), counts and form tips or counts only, vibration

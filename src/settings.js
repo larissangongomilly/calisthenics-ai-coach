@@ -8,8 +8,11 @@ export const COUNTDOWNS = [0, 3, 5, 10]; // seconds before a set starts
 export const SETUP_MODES = ["first", "always", "never"]; // when the guided setup runs
 export const STRICTNESS = ["easy", "normal", "strict"]; // how strict reps and holds are judged
 export const COACH_TALK = ["full", "counts"]; // form tips and counts, or counts only
+export const APPEARANCES = ["system", "dark", "light"]; // follow the phone, or always dark or light
 
 export const DEFAULT_SETTINGS = Object.freeze({
+  // Appearance
+  appearance: "system",
   // Training
   countdown: 5,
   setupMode: "first", // guide into the position the first time only
@@ -34,6 +37,7 @@ export function cleanSettings(raw) {
   const data = raw && typeof raw === "object" ? raw : {};
   const d = DEFAULT_SETTINGS;
   return {
+    appearance: oneOf(APPEARANCES, data.appearance, d.appearance),
     countdown: oneOf(COUNTDOWNS, data.countdown, d.countdown),
     setupMode: oneOf(SETUP_MODES, data.setupMode, d.setupMode),
     strictness: oneOf(STRICTNESS, data.strictness, d.strictness),

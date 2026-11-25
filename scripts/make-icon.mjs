@@ -6,9 +6,20 @@ import { renderFigure } from "../src/figures.js";
 const BG = "#0f1115";
 const ACCENT = "#c6f432";
 
+// Figures use CSS variables for the app themes. An icon file has no
+// stylesheet, so they are replaced with the dark theme colors.
+const FIGURE_COLORS = {
+  "--figure-line": "#4b5263",
+  "--figure-gear": "#8b93a3",
+  "--figure-dim": "#3a3f4a",
+  "--figure-hatch": "#2f343e",
+  "--figure-strap": "#5c6473",
+};
+const withColors = (svg) => svg.replace(/var\((--figure-[a-z]+)\)/g, (match, name) => FIGURE_COLORS[name] ?? match);
+
 // scale: share of the icon the figure may use (maskable icons need a safe zone)
 function icon(scale) {
-  const inner = renderFigure("full-planche", ACCENT, BG).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
+  const inner = withColors(renderFigure("full-planche", ACCENT, BG)).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
   const size = 100 * scale;
   const offset = (100 - size) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">

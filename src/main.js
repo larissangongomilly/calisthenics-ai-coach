@@ -12,6 +12,7 @@ import { BODY_LIMITS, cleanName, initials, loadDetails, loadName, saveName, upda
 import { currentLevel, getBadges, goalProgress } from "./badges.js";
 import { getSkillColors, renderFigure } from "./figures.js";
 import { DEFAULT_SETTINGS, guideStartsOn, loadSettings, updateSettings } from "./settings.js";
+import { applyTheme, watchSystemTheme } from "./theme.js";
 import { REST_CALLOUTS, REST_LIMITS, SETS_LIMITS, createWorkout, describeRest, formatClock, stepValue } from "./workout.js";
 import { renderStats } from "./stats-view.js";
 import { overview } from "./stats.js";
@@ -200,6 +201,8 @@ const HOLD_ANNOUNCE_EVERY = 5; // Say the hold time every 5 seconds.
 let userName = loadName();
 let settings = loadSettings();
 setVoiceOptions(settings);
+applyTheme(settings.appearance);
+watchSystemTheme(() => applyTheme(settings.appearance));
 let activeTab = "home";
 let skillFilter = { level: null, query: "" };
 
@@ -348,7 +351,7 @@ function renderGoal(progress) {
     return;
   }
   const colors = getSkillColors(goal.skill.id);
-  goalFigure.innerHTML = renderFigure(goal.skill.id, goal.completed ? colors.done : colors.bright, "#181b22");
+  goalFigure.innerHTML = renderFigure(goal.skill.id, goal.completed ? colors.done : colors.bright, "var(--surface)");
   goalFill.style.width = `${Math.round((goal.done / goal.total) * 100)}%`;
   goalFill.style.background = colors.bright;
   if (goal.completed) {
@@ -503,6 +506,7 @@ function renderSettings() {
 function changeSettings(changes) {
   settings = updateSettings(changes);
   setVoiceOptions(settings);
+  applyTheme(settings.appearance);
   renderSettings();
 }
 

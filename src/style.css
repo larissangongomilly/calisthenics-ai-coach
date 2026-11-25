@@ -1,24 +1,97 @@
 /* ---------- Design tokens ---------- */
+/* Two themes with the same brand: "Graphite and lime" (dark, the default)
+   and "Light and lime". theme.js sets data-theme on <html>. Levels are steps
+   of one lime hue: higher levels are brighter in dark mode and darker in
+   light mode, so they always stand out more. */
 :root {
+  color-scheme: dark;
   --bg: #0f1115;
   --surface: #181b22;
   --surface-2: #20242d;
   --border: #2a2f3a;
   --text: #f2f4f7;
+  --text-soft: #c9ced8;
   --muted: #9aa3b2;
+  --faint: #5c6473;
   --accent: #c6f432;
   --accent-dark: #8fb31a;
   --accent-soft: rgba(198, 244, 50, 0.14);
+  --accent-text: #c6f432;
   --on-accent: #0f1115;
-  --warning: #ffb547;
+  --warning: #ff6b5b;
+  --danger: #ff6b6b;
+  --danger-ring: #4a2a2e;
   --locked: #2c313c;
   --locked-dark: #1f232b;
+  --edge: #14171d;
+  --figure-line: #4b5263;
+  --figure-gear: #8b93a3;
+  --figure-dim: #3a3f4a;
+  --figure-hatch: #2f343e;
+  --figure-strap: #5c6473;
+  --figure-open: #9aa3b2;
+  --figure-locked: #3a3f4a;
+  --level-1: #6f8a1e;
+  --level-2: #84a321;
+  --level-3: #99bc25;
+  --level-4: #aed72b;
+  --level-5: #c6f432;
+  --level-6: #d6fa6e;
+  --level-7: #e8ffa8;
+  --on-level: #0f1115;
   --radius: 20px;
   --tab-height: 68px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui,
     sans-serif;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f4ef;
+  --surface: #ffffff;
+  --surface-2: #ecece6;
+  --border: #dcdcd4;
+  --text: #15171c;
+  --text-soft: #3d424b;
+  --muted: #666b75;
+  --faint: #8d929b;
+  --accent-soft: rgba(111, 138, 30, 0.14);
+  --accent-text: #4f6b0a;
+  --on-accent: #15171c;
+  --warning: #d4412c;
+  --danger: #c9302c;
+  --danger-ring: #f1c9c6;
+  --locked: #e2e2dc;
+  --locked-dark: #d3d3cc;
+  --edge: #cfcfc8;
+  --figure-line: #9a9ea6;
+  --figure-gear: #6b7079;
+  --figure-dim: #c4c6cb;
+  --figure-hatch: #d3d5d9;
+  --figure-strap: #8d929b;
+  --figure-open: #6b7079;
+  --figure-locked: #c4c6cb;
+  --level-1: #6f8a1e;
+  --level-2: #5f7a19;
+  --level-3: #506914;
+  --level-4: #435911;
+  --level-5: #374a0d;
+  --level-6: #2b3b0a;
+  --level-7: #202d07;
+  --on-level: #ffffff;
+}
+
+/* Completed skills: the level color, toned down toward the background. */
+:root {
+  --level-1-done: color-mix(in srgb, var(--level-1) 70%, var(--bg));
+  --level-2-done: color-mix(in srgb, var(--level-2) 70%, var(--bg));
+  --level-3-done: color-mix(in srgb, var(--level-3) 70%, var(--bg));
+  --level-4-done: color-mix(in srgb, var(--level-4) 70%, var(--bg));
+  --level-5-done: color-mix(in srgb, var(--level-5) 70%, var(--bg));
+  --level-6-done: color-mix(in srgb, var(--level-6) 70%, var(--bg));
+  --level-7-done: color-mix(in srgb, var(--level-7) 70%, var(--bg));
 }
 
 * {
@@ -94,7 +167,7 @@ p {
 .button-secondary {
   background: var(--surface-2);
   color: var(--text);
-  box-shadow: 0 4px 0 #14171d;
+  box-shadow: 0 4px 0 var(--edge);
 }
 
 .button-ghost {
@@ -214,7 +287,7 @@ p {
   padding: 8px 12px;
   border-radius: 999px;
   background: var(--surface);
-  color: var(--warning);
+  color: var(--accent-text);
   font-weight: 800;
 }
 
@@ -251,7 +324,7 @@ p {
 }
 
 .level-kicker {
-  color: var(--level-color, var(--accent));
+  color: var(--level-color, var(--accent-text));
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.6px;
@@ -336,7 +409,7 @@ p {
 
 .node-badge.is-locked {
   background: var(--locked);
-  color: #6b7280;
+  color: var(--faint);
 }
 
 .node-label {
@@ -430,7 +503,7 @@ p {
 .chip.is-active {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .skill-list {
@@ -481,7 +554,7 @@ p {
   border: 2px solid var(--surface);
   border-radius: 50%;
   background: var(--locked);
-  color: #6b7280;
+  color: var(--faint);
 }
 
 .row-text {
@@ -503,7 +576,7 @@ p {
 
 .row-chevron {
   flex: none;
-  color: #5c6473;
+  color: var(--faint);
 }
 
 .empty {
@@ -537,7 +610,7 @@ p {
   height: calc(var(--tab-height) + var(--safe-bottom));
   padding: 6px 16px var(--safe-bottom);
   border-top: 1px solid var(--border);
-  background: rgba(15, 17, 21, 0.94);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -553,7 +626,7 @@ p {
   border: 0;
   border-radius: 14px;
   background: transparent;
-  color: #5c6473;
+  color: var(--faint);
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -561,7 +634,7 @@ p {
 }
 
 .tab.is-active {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------- Training ---------- */
@@ -605,7 +678,7 @@ p {
   display: flex;
   gap: 10px;
   margin-top: 10px;
-  color: #c9ced8;
+  color: var(--text-soft);
   font-size: 15px;
   line-height: 1.4;
 }
@@ -672,7 +745,7 @@ p {
 
 .live-feedback {
   margin-top: 6px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 18px;
   font-weight: 700;
   line-height: 1.35;
@@ -680,7 +753,7 @@ p {
 
 .live-debug {
   margin-top: 8px;
-  color: #5c6473;
+  color: var(--faint);
   font-size: 12px;
 }
 
@@ -750,14 +823,14 @@ p {
 
 .stat-value {
   margin-top: 6px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 30px;
   font-weight: 800;
 }
 
 .results-progress {
   margin-bottom: 16px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   text-align: center;
 }
@@ -769,7 +842,7 @@ p {
 .notes-list {
   margin: 0;
   padding-left: 20px;
-  color: #c9ced8;
+  color: var(--text-soft);
   line-height: 1.5;
 }
 
@@ -847,7 +920,7 @@ dialog::backdrop {
 
 .sheet-status {
   margin-bottom: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -855,7 +928,7 @@ dialog::backdrop {
   margin-bottom: 12px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(255, 181, 71, 0.12);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
   color: var(--warning);
   font-size: 14px;
   font-weight: 700;
@@ -865,7 +938,7 @@ dialog::backdrop {
 .milestones {
   margin: 14px 0 6px;
   padding-left: 22px;
-  color: #c9ced8;
+  color: var(--text-soft);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -891,7 +964,7 @@ dialog::backdrop {
 .modal p,
 .modal ul {
   margin: 12px 0 8px;
-  color: #c9ced8;
+  color: var(--text-soft);
   line-height: 1.5;
 }
 
@@ -950,7 +1023,7 @@ dialog::backdrop {
 
 .mini-value {
   margin-top: 4px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 20px;
   font-weight: 800;
 }
@@ -1002,7 +1075,7 @@ dialog::backdrop {
 
 .goal-state {
   margin-top: 6px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 14px;
   font-weight: 700;
 }
@@ -1170,8 +1243,8 @@ dialog::backdrop {
 
 .button-danger {
   background: transparent;
-  color: #ff6b6b;
-  box-shadow: inset 0 0 0 2px #4a2a2e;
+  color: var(--danger);
+  box-shadow: inset 0 0 0 2px var(--danger-ring);
 }
 
 /* The front camera is shown like a mirror, unless the user turned that off. */
@@ -1249,7 +1322,7 @@ dialog::backdrop {
 
 .stepper-value {
   min-width: 56px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 20px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -1295,7 +1368,7 @@ dialog::backdrop {
 
 .rest-clock {
   margin-top: 4px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 84px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -1453,13 +1526,13 @@ dialog::backdrop {
 /* Training day: filled with the color of the highest level trained. */
 .calendar-day.is-trained {
   background: var(--day-color, var(--accent));
-  color: var(--on-accent);
+  color: var(--on-level);
 }
 
 .calendar-day.is-future {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--border);
-  color: #4b5263;
+  color: var(--faint);
 }
 
 .calendar-day.is-today {
@@ -1655,7 +1728,7 @@ dialog::backdrop {
 
 .title-count {
   margin-left: 6px;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: 0;
 }
 
@@ -1669,7 +1742,7 @@ dialog::backdrop {
 }
 
 .badge {
-  --badge-color: var(--accent);
+  --badge-color: var(--accent-text);
   display: grid;
   gap: 2px;
   padding: 12px 14px;

@@ -5,10 +5,11 @@ import { LEVELS, getSkill } from "./skills.js";
 import { formatClock } from "./workout.js";
 import { overview, personalBests, skillSeries, trainingCalendar, weeklyTotals } from "./stats.js";
 
-const ACCENT = "#c6f432";
-const TRACK = "#20242d";
-const GRID = "#2a2f3a";
-const MUTED = "#9aa3b2";
+// Colors are CSS variables (style.css), so the charts follow dark and light mode.
+const ACCENT = "var(--accent-text)";
+const TRACK = "var(--surface-2)";
+const GRID = "var(--border)";
+const MUTED = "var(--muted)";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const shortDate = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -20,7 +21,12 @@ const dayLabel = (day, format = shortDate) => format.format(new Date(`${day}T00:
 function svg(tag, attributes = {}) {
   const element = document.createElementNS(SVG_NS, tag);
   for (const [key, value] of Object.entries(attributes)) {
-    element.setAttribute(key, String(value));
+    // Colors go through style: SVG attributes do not understand var().
+    if (key === "fill" || key === "stroke") {
+      element.style.setProperty(key, String(value));
+    } else {
+      element.setAttribute(key, String(value));
+    }
   }
   return element;
 }
@@ -75,7 +81,7 @@ function renderTiles(container, numbers) {
 // look empty. Each bar is split by the level of the skills, in level colors.
 
 const W = 320;
-const SURFACE = "#181b22";
+const SURFACE = "var(--surface)";
 const levelColor = (level) => LEVELS.find((l) => l.level === level)?.color ?? ACCENT;
 
 // Small row of level colors under a chart, only for the levels that appear.
@@ -270,7 +276,7 @@ function renderSkillChart(container, caption, skill, points) {
     const group = svg("g", { class: "chart-hit" });
     group.append(svg("rect", { x: xOf(i) - slot / 2, y: 0, width: slot, height: H, fill: "transparent" }));
     // 2px surface ring keeps the dot readable on the line.
-    group.append(svg("circle", { class: "dot", cx: xOf(i), cy: yOf(p.value), r: 4.5, fill: ACCENT, stroke: "#181b22", "stroke-width": 2 }));
+    group.append(svg("circle", { class: "dot", cx: xOf(i), cy: yOf(p.value), r: 4.5, fill: ACCENT, stroke: SURFACE, "stroke-width": 2 }));
     chart.append(group);
     return group;
   });

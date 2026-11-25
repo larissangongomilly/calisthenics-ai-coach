@@ -65,10 +65,13 @@ const POSES = {
 // Poses where the knee rests outside on the arm: the leg is drawn in front.
 const LEG_IN_FRONT = new Set(["crow-pose", "frog-stand-straight"]);
 
-const LINE = "#4b5263";
-const GEAR = "#8b93a3";
-const DIM = "#3a3f4a";
-const HATCH = "#2f343e";
+// Colors are CSS variables (style.css), so figures follow dark and light mode.
+// They are set with style="" because SVG attributes do not understand var().
+const LINE = "var(--figure-line)";
+const GEAR = "var(--figure-gear)";
+const DIM = "var(--figure-dim)";
+const HATCH = "var(--figure-hatch)";
+const STRAP = "var(--figure-strap)";
 
 // ---------- Colors ----------
 
@@ -79,12 +82,12 @@ export function getSkillColors(skillId) {
   return { bright: level.color, done: level.dark };
 }
 
-export const STATE_COLORS = { open: "#9aa3b2", locked: "#3a3f4a" };
+export const STATE_COLORS = { open: "var(--figure-open)", locked: "var(--figure-locked)" };
 
 // ---------- Equipment ----------
 
 function line(x1, y1, x2, y2, color, width) {
-  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>`;
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${color}" stroke-width="${width}" stroke-linecap="round"/>`;
 }
 
 function floor(y = 90) {
@@ -100,7 +103,7 @@ function frame(y) {
 }
 
 function ring(x, y) {
-  return line(x, 2, x, y - 5, "#5c6473", 1.5) + `<circle cx="${x}" cy="${y}" r="5" fill="none" stroke="${GEAR}" stroke-width="2.5"/>`;
+  return line(x, 2, x, y - 5, STRAP, 1.5) + `<circle cx="${x}" cy="${y}" r="5" fill="none" style="stroke:${GEAR}" stroke-width="2.5"/>`;
 }
 
 function drawEquipment(type) {
@@ -116,7 +119,7 @@ function drawEquipment(type) {
     case "dip":
       return floor() + line(30, 50, 74, 50, GEAR, 4) + line(34, 50, 26, 90, GEAR, 2.5) + line(70, 50, 78, 90, GEAR, 2.5);
     case "par":
-      return floor() + `<path d="M34 90 L37 75 L63 75 L66 90" fill="none" stroke="${GEAR}" stroke-width="2.5" stroke-linejoin="round"/>`;
+      return floor() + `<path d="M34 90 L37 75 L63 75 L66 90" fill="none" style="stroke:${GEAR}" stroke-width="2.5" stroke-linejoin="round"/>`;
     case "bench":
       return floor() + line(4, 76, 66, 76, GEAR, 5) + line(10, 76, 10, 90, GEAR, 2.5) + line(60, 76, 60, 90, GEAR, 2.5);
     case "wall": {
@@ -129,7 +132,7 @@ function drawEquipment(type) {
     case "pole":
       return floor(96) + line(20, 2, 20, 96, GEAR, 4);
     case "ringsPair":
-      return line(30, 2, 30, 50, "#5c6473", 1.5) + line(70, 2, 70, 50, "#5c6473", 1.5);
+      return line(30, 2, 30, 50, STRAP, 1.5) + line(70, 2, 70, 50, STRAP, 1.5);
     case "rings44":
       return ring(50, 44);
     case "rings54":
@@ -146,7 +149,7 @@ function drawFrontEquipment(type, background) {
   if (type !== "ringsPair") {
     return "";
   }
-  const heldRing = (x) => `<circle cx="${x}" cy="59" r="8" fill="${background}" stroke="${GEAR}" stroke-width="3"/>`;
+  const heldRing = (x) => `<circle cx="${x}" cy="59" r="8" style="fill:${background};stroke:${GEAR}" stroke-width="3"/>`;
   return heldRing(30) + heldRing(70);
 }
 
@@ -161,7 +164,7 @@ function points(list) {
 }
 
 function polyline(list, width, color) {
-  return `<polyline points="${points(list)}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<polyline points="${points(list)}" fill="none" style="stroke:${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
 
 // Draws lines (and an optional head) as one outlined shape: a thick colored
@@ -169,10 +172,10 @@ function polyline(list, width, color) {
 function outlined(lines, head, color, background) {
   const outer =
     lines.map((l) => polyline(l, 13, color)).join("") +
-    (head ? `<circle cx="${head[0]}" cy="${head[1]}" r="8.5" fill="${color}"/>` : "");
+    (head ? `<circle cx="${head[0]}" cy="${head[1]}" r="8.5" style="fill:${color}"/>` : "");
   const inner =
     lines.map((l) => polyline(l, 8, background)).join("") +
-    (head ? `<circle cx="${head[0]}" cy="${head[1]}" r="6" fill="${background}"/>` : "");
+    (head ? `<circle cx="${head[0]}" cy="${head[1]}" r="6" style="fill:${background}"/>` : "");
   return outer + inner;
 }
 

@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, cleanSettings, guideStartsOn, loadSettings, updateSet
 import { memoryStorage } from "./helpers/fake-pose.js";
 
 test("defaults: 5 s countdown, guide the first time, normal strictness, skeleton on", () => {
+  assert.equal(DEFAULT_SETTINGS.appearance, "system");
   const settings = loadSettings(memoryStorage());
   assert.deepEqual(settings, DEFAULT_SETTINGS);
   assert.equal(settings.countdown, 5);
@@ -78,4 +79,15 @@ test("the setup mode decides whether the guide starts switched on", () => {
   assert.equal(guideStartsOn("first", true), false);
   assert.equal(guideStartsOn("always", true), true);
   assert.equal(guideStartsOn("never", false), false);
+});
+
+test("appearance follows the phone by default and can be fixed", async () => {
+  const { resolveTheme } = await import("../src/theme.js");
+  assert.equal(DEFAULT_SETTINGS.appearance, "system");
+  assert.equal(cleanSettings({ appearance: "blue" }).appearance, "system");
+  assert.equal(cleanSettings({ appearance: "light" }).appearance, "light");
+  assert.equal(resolveTheme("system", true), "light");
+  assert.equal(resolveTheme("system", false), "dark");
+  assert.equal(resolveTheme("dark", true), "dark");
+  assert.equal(resolveTheme("light", false), "light");
 });

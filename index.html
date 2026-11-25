@@ -17,6 +17,15 @@
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>Calisthenics AI Coach</title>
     <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      // Sets dark or light mode before the page is drawn, so it never flashes.
+      // Keep in sync with src/theme.js.
+      try {
+        const a = JSON.parse(localStorage.getItem("settings") || "{}").appearance;
+        const light = a === "light" || (a !== "dark" && matchMedia("(prefers-color-scheme: light)").matches);
+        if (light) document.documentElement.dataset.theme = "light";
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <div class="app">
@@ -24,11 +33,11 @@
       <section id="welcome-screen" class="screen welcome" hidden>
         <div class="welcome-art" aria-hidden="true">
           <svg viewBox="0 0 120 120" width="120" height="120">
-            <circle cx="60" cy="60" r="56" fill="var(--accent-soft)" />
-            <circle cx="60" cy="34" r="9" fill="var(--accent)" />
+            <circle cx="60" cy="60" r="56" style="fill: var(--accent-soft)" />
+            <circle cx="60" cy="34" r="9" style="fill: var(--accent-text)" />
             <path
               d="M60 45 L60 74 M60 52 L40 40 M60 52 L80 40 M60 74 L46 96 M60 74 L74 96"
-              stroke="var(--accent)"
+              style="stroke: var(--accent-text)"
               stroke-width="7"
               stroke-linecap="round"
               fill="none"
@@ -206,6 +215,16 @@
           </button>
           <h1 class="app-bar-title">Settings</h1>
         </header>
+
+        <h2 class="settings-title">Appearance</h2>
+        <div class="settings-card">
+          <div class="segmented" data-setting="appearance" role="radiogroup" aria-label="Appearance">
+            <button type="button" class="chip" data-value="system">System</button>
+            <button type="button" class="chip" data-value="dark">Dark</button>
+            <button type="button" class="chip" data-value="light">Light</button>
+          </div>
+          <p class="settings-note">System follows the dark or light mode of your phone.</p>
+        </div>
 
         <h2 class="settings-title">Training</h2>
         <div class="settings-card">
