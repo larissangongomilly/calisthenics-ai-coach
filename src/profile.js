@@ -1,4 +1,5 @@
-// Stores the user's profile on this device. There is no account yet.
+// Stores the user's profile on this device. With an account, name, photo and
+// goal skill are synced too (see sync.js); body data never leaves the device.
 const NAME_KEY = "userName";
 const MAX_LENGTH = 30;
 

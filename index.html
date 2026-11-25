@@ -191,6 +191,32 @@
         <h2 class="settings-title">Badges <span id="badge-count" class="title-count"></span></h2>
         <ul id="badge-list" class="badge-list"></ul>
 
+        <div id="account-section" hidden>
+          <h2 class="settings-title">Account</h2>
+          <div class="settings-card">
+            <form id="account-email-form">
+              <p class="settings-note account-intro">Optional. Sign in to keep your progress safe and use it on other devices. You get a 6-digit code by email, no password.</p>
+              <label for="account-email" class="field-label">Email</label>
+              <input id="account-email" class="text-input" type="email" autocomplete="email" inputmode="email" required />
+              <button type="submit" class="button button-secondary button-block account-button">Send code</button>
+            </form>
+            <form id="account-code-form" hidden>
+              <label for="account-code" class="field-label">Code from the email</label>
+              <input id="account-code" class="text-input" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6,10}" maxlength="10" required />
+              <button type="submit" class="button button-secondary button-block account-button">Sign in</button>
+              <button id="account-other-email" type="button" class="link-button">Use another email</button>
+            </form>
+            <div id="account-signed-in" hidden>
+              <p class="account-email-line">Signed in as <strong id="account-user"></strong></p>
+              <p id="account-last-sync" class="settings-note"></p>
+              <button id="account-sync" type="button" class="button button-secondary button-block account-button">Sync now</button>
+              <button id="account-sign-out" type="button" class="button button-secondary button-block account-button">Sign out</button>
+              <button id="account-delete" type="button" class="button button-danger button-block account-button">Delete account</button>
+            </div>
+            <p id="account-status" class="settings-note" role="status" hidden></p>
+          </div>
+        </div>
+
         <h2 class="settings-title">About you</h2>
         <form id="name-form" class="settings-card">
           <label for="profile-name" class="field-label">Your name</label>
@@ -201,7 +227,7 @@
             <label><span class="body-label">Weight (kg)</span><input id="body-weight" class="text-input" type="number" inputmode="numeric" min="30" max="250" /></label>
             <label><span class="body-label">Birth year</span><input id="body-year" class="text-input" type="number" inputmode="numeric" min="1920" max="2020" /></label>
           </div>
-          <p class="settings-note">Only stored on this device. Later it helps the coach give better tips.</p>
+          <p class="settings-note">Only stored on this device, also with an account. Later it helps the coach give better tips.</p>
           <button type="submit" class="button button-secondary button-block">Save</button>
           <p id="name-saved" class="settings-note" hidden>Saved.</p>
         </form>

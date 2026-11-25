@@ -1808,3 +1808,18 @@ dialog::backdrop {
 .toggle-row-flat.settings-label {
   margin-top: 18px;
 }
+
+/* ---------- Account ---------- */
+.account-intro {
+  margin: 0 0 12px;
+}
+
+.account-button {
+  margin-top: 10px;
+}
+
+.account-email-line {
+  margin: 0;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}

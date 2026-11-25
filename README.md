@@ -19,6 +19,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Stats tab:** sets per week split by level, a training calendar that shows the date and the highest level trained each day, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
 - **Profile:** photo, current level, overview (skills completed, week streak, training days, total reps), a goal skill with the way there, badges, and optional body data
+- **Optional account:** sign in with a 6-digit email code (no password) to keep your progress safe and use it on several devices. Progress from all devices is merged, so nothing gets lost. Account data is stored by Supabase in the EU (Frankfurt). The app works fully without an account
 - **Dark and light mode:** "Graphite and lime" and "Light and lime", following the phone or fixed in the settings
 - **Settings:**
   - Appearance: system, dark or light
@@ -60,6 +61,12 @@ Open the address that Vite shows (usually `http://localhost:5173`) and allow cam
 
 **Tests:** `npm test` runs the automated tests (Node's built-in test runner, no extra packages). They cover progress and streak rules, level unlocking, the camera rules with simulated poses, the guided setup and the figures.
 
+**Accounts (optional):** without the two variables below the app runs fully offline and hides the account section.
+
+1. Create a Supabase project (region: Frankfurt) and run [`supabase/migrations/001_init.sql`](supabase/migrations/001_init.sql) in its SQL editor. It creates one table with row level security (every user can only read and change their own row) and a `delete_account()` function for in-app account deletion.
+2. In Authentication → Emails, add `{{ .Token }}` to the "Magic Link" and "Confirm signup" templates, so the email contains the 6-digit code.
+3. Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project Settings → API). For the hosted version, add the same two variables in the Cloudflare Pages settings.
+
 **Production build:** `npm run build` creates the app in `dist/`. The test version is hosted on Cloudflare Pages (build command `npm run build`, output folder `dist`) behind Cloudflare Access, so only invited people can open it.
 
 **App icon:** `node scripts/make-icon.mjs` writes the icon SVGs to `public/icons/`. The PNG sizes were made from them on macOS (`qlmanage -t -s 512`, then `sips -z`).
@@ -84,7 +91,8 @@ Docs:
 - **One camera, 2D only:** The app cannot see depth, muscle tension, hand pressure or whether your lower back touches the floor. It also cannot tell whether you face up or down (for example front lever vs. back lever).
 - **Visibility:** Feedback stops when joints are hidden. Loose clothing, low light or a cut-off body make detection worse.
 - **Wake lock:** Keeping the screen on needs a recent browser (iOS 16.4+, current Chrome). On older ones, set the auto-lock time of the phone higher while training.
-- **Local progress:** Progress lives in your browser. It is lost if you clear your browser data or switch device.
+- **Local progress:** Without an account, progress lives in your browser. It is lost if you clear your browser data or switch device. With an account, it is synced.
+- **Reset with several devices:** "Reset all progress" also clears the account, but another signed-in device still has its own copy and adds it back on its next sync.
 - **Levels and criteria are preliminary** and not reviewed by calisthenics experts.
 - English only for now.
 - **Web app for now:** it is designed to become an App Store and Play Store app later, but today it runs in the browser.

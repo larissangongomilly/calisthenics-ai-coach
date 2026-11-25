@@ -1,4 +1,5 @@
-// Saves the user's progress in the browser (localStorage). There is no login yet.
+// Saves the user's progress in the browser (localStorage). With an account it is
+// also synced (see sync.js and cloud.js).
 // Limitation: progress is lost if the user clears the browser data.
 import { RULES, getPracticeMinimum, getSkill } from "./skills.js";
 

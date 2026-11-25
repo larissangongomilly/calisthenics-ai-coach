@@ -15,6 +15,9 @@ import { DEFAULT_SETTINGS, guideStartsOn, loadSettings, updateSettings } from ".
 import { applyTheme, watchSystemTheme } from "./theme.js";
 import { REST_CALLOUTS, REST_LIMITS, SETS_LIMITS, createWorkout, describeRest, formatClock, stepValue } from "./workout.js";
 import { renderStats } from "./stats-view.js";
+import { initAccount, isSignedIn, requestSync } from "./account.js";
+import { resetCloudProgress } from "./cloud.js";
+import { loadSyncState, markChanged, saveSyncState, toCloudProfile } from "./sync.js";
 import { overview } from "./stats.js";
 import { fillSkillSheet, renderLevelChips, renderRoad, renderSkillList } from "./views.js";
 
@@ -317,6 +320,7 @@ function finishWelcome(event) {
   }
   userName = name;
   saveName(name); // If saving fails, the name is kept until the app is closed.
+  markChanged("profile");
   showTab("home");
 }
 
@@ -430,6 +434,10 @@ function renderProfile() {
 function changeDetails(changes) {
   const result = updateDetails(changes, isKnownSkill);
   details = result.details;
+  if ("photo" in changes || "goalSkill" in changes) {
+    markChanged("profile"); // body data is not synced
+    requestSync();
+  }
   return result.saved;
 }
 
@@ -505,6 +513,8 @@ function renderSettings() {
 
 function changeSettings(changes) {
   settings = updateSettings(changes);
+  markChanged("settings");
+  requestSync();
   setVoiceOptions(settings);
   applyTheme(settings.appearance);
   renderSettings();
@@ -541,6 +551,9 @@ function saveProfileName(event) {
       return;
     }
   }
+  if (name !== userName) {
+    markChanged("profile");
+  }
   userName = name;
   saveName(name);
   const saved = changeDetails({
@@ -569,6 +582,9 @@ async function resetProgress() {
   );
   if (ok) {
     saveProgress(createEmptyProgress());
+    if (isSignedIn()) {
+      resetCloudProgress().catch((error) => console.warn("Account progress not reset:", error));
+    }
     showTab("home");
   }
 }
@@ -745,6 +761,7 @@ function renderWorkoutChoices() {
 
 function changeWorkoutChoice(changes) {
   settings = updateSettings(changes);
+  markChanged("settings");
   renderWorkoutChoices();
 }
 
@@ -1193,6 +1210,7 @@ function finishSet() {
   if (!saveProgress(update.progress)) {
     progressSaveFailed = true;
   }
+  requestSync();
   workout.addSet(result, update);
 
   if (workout.isFinished()) {
@@ -1388,3 +1406,38 @@ if (userName) {
 } else {
   showScreen("welcome");
 }
+
+// ---------- Account (optional) ----------
+
+function readLocalData() {
+  return {
+    progress: loadProgress(),
+    settings,
+    profile: toCloudProfile(userName, details),
+    ...loadSyncState(),
+  };
+}
+
+// Saves the merged data from a sync and redraws the open tab.
+function applySyncedData(merged) {
+  saveProgress(merged.progress);
+  settings = updateSettings(merged.settings);
+  setVoiceOptions(settings);
+  applyTheme(settings.appearance);
+  if (merged.profile.name) {
+    userName = merged.profile.name;
+    saveName(userName);
+  }
+  details = updateDetails({ photo: merged.profile.photo, goalSkill: merged.profile.goalSkill }, isKnownSkill).details;
+  saveSyncState({
+    settingsChangedAt: merged.settingsChangedAt,
+    profileChangedAt: merged.profileChangedAt,
+    lastSyncAt: new Date().toISOString(),
+  });
+  if (!screens.home.hidden) renderHome();
+  if (!screens.stats.hidden) renderStats(statsParts, loadProgress(), statsState);
+  if (!screens.profile.hidden) renderProfile();
+  if (!screens.settings.hidden) renderSettings();
+}
+
+initAccount({ readLocal: readLocalData, writeLocal: applySyncedData, confirm: confirmHint });

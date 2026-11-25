@@ -28,6 +28,7 @@
     "vite": "^8.3.8"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "^1.2.3"
+    "@mediapipe/tasks-vision": "^1.2.3",
+    "@supabase/supabase-js": "2.118.0"
   }
 }
