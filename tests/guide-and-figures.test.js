@@ -127,11 +127,11 @@ test("every skill has a figure in its level color", () => {
 });
 
 test("names are trimmed, limited and stored safely", () => {
-  assert.equal(cleanName("  Larose   Coach  "), "Larose Coach");
+  assert.equal(cleanName("  Alex   Coach  "), "Alex Coach");
   assert.equal(cleanName("x".repeat(50)).length, 30);
   const storage = memoryStorage();
-  assert.equal(saveName(" Larose ", storage), true);
-  assert.equal(loadName(storage), "Larose");
+  assert.equal(saveName(" Alex ", storage), true);
+  assert.equal(loadName(storage), "Alex");
   const blocked = {
     getItem() {
       throw new Error("blocked");
