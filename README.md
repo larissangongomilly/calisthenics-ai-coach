@@ -16,7 +16,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab, switched with a bottom tab bar
 - **Works offline** once loaded (a native App Store and Play Store version is planned)
 - **Workouts with sets and rest:** set your own number of sets (1 to 10) and rest time (15 seconds to 10 minutes, default 3 sets with 1:30 rest); a spoken countdown runs between sets and the next set starts by itself, so you never have to walk to the phone. The screen stays on during the workout
-- **Stats tab:** reps per week, a training calendar, a progress curve per skill with its goal, and personal bests
+- **Stats tab:** sets per week split by level, a training calendar that shows the date and the highest level trained each day, a progress curve per skill with its goal, and personal bests
 - **Guided setup for every skill:** the coach talks you into the starting position step by step, from placing the camera to the first hold
 - **Profile:** photo, current level, overview (skills completed, week streak, training days, total reps), a goal skill with the way there, badges, and optional body data
 - **Settings:**

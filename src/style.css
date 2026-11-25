@@ -1436,31 +1436,38 @@ dialog::backdrop {
 }
 
 .calendar-day {
-  display: block;
-  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
   background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  text-align: center;
+  white-space: pre-line;
   outline: none;
 }
 
-.calendar-day.level-1 {
-  background: rgba(198, 244, 50, 0.35);
-}
-
-.calendar-day.level-2 {
-  background: rgba(198, 244, 50, 0.65);
-}
-
-.calendar-day.level-3 {
-  background: var(--accent);
+/* Training day: filled with the color of the highest level trained. */
+.calendar-day.is-trained {
+  background: var(--day-color, var(--accent));
+  color: var(--on-accent);
 }
 
 .calendar-day.is-future {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--border);
+  color: #4b5263;
 }
 
 .calendar-day.is-today {
   box-shadow: inset 0 0 0 2px var(--text);
+}
+
+.calendar-day.is-trained.is-today {
+  box-shadow: inset 0 0 0 2px var(--surface), 0 0 0 2px var(--text);
 }
 
 .calendar-day.is-selected,
@@ -1468,19 +1475,26 @@ dialog::backdrop {
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text);
 }
 
-.calendar-legend {
+.level-legend {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 5px;
-  margin-top: 10px;
+  gap: 6px 14px;
+  margin-top: 12px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.calendar-legend .calendar-day {
-  width: 12px;
-  height: 12px;
+.level-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-swatch {
+  width: 10px;
+  height: 10px;
   border-radius: 3px;
 }
 

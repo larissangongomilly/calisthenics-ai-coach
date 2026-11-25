@@ -18,7 +18,7 @@ export function weekStart(day) {
 }
 
 // All saved sets of all skills, oldest first:
-// { skillId, day, date, reps, seconds, score, measure }
+// { skillId, level, day, date, reps, seconds, score, measure }
 export function allSets(progress) {
   const sets = [];
   for (const [skillId, entry] of Object.entries(progress.skills)) {
@@ -26,7 +26,7 @@ export function allSets(progress) {
     for (const set of entry.history) {
       const date = new Date(set.date);
       if (Number.isNaN(date.getTime())) continue;
-      sets.push({ skillId, day: toBerlinDay(date), date: set.date, reps: set.reps, seconds: set.seconds, score: set.score, measure: skill.measure });
+      sets.push({ skillId, level: skill.level, day: toBerlinDay(date), date: set.date, reps: set.reps, seconds: set.seconds, score: set.score, measure: skill.measure });
     }
   }
   return sets.sort((a, b) => a.date.localeCompare(b.date));
@@ -40,6 +40,7 @@ export function weeklyTotals(progress, now = new Date(), count = 8) {
     sets: 0,
     reps: 0,
     holdSeconds: 0,
+    setsByLevel: {}, // level -> number of sets, for the stacked bars
     days: new Set(),
   }));
   const byWeek = new Map(weeks.map((week) => [weekNumber(week.weekStart), week]));
@@ -49,24 +50,31 @@ export function weeklyTotals(progress, now = new Date(), count = 8) {
     week.sets += 1;
     week.reps += set.measure === "reps" ? set.reps : 0;
     week.holdSeconds += set.measure === "hold" ? set.seconds : 0;
+    week.setsByLevel[set.level] = (week.setsByLevel[set.level] ?? 0) + 1;
     week.days.add(set.day);
   }
   return weeks.map(({ days, ...week }) => ({ ...week, activeDays: days.size }));
 }
 
 // Calendar of the last `count` weeks: rows of 7 days (Monday first) with the
-// number of sets on each day. Days after today are marked as future.
+// number of sets on each day, the highest level trained that day and the
+// skills trained. Days after today are marked as future.
 export function trainingCalendar(progress, now = new Date(), count = 6) {
   const today = toBerlinDay(now);
   const firstDay = addDays(weekStart(today), -7 * (count - 1));
-  const setsPerDay = new Map();
+  const byDay = new Map();
   for (const set of allSets(progress)) {
-    setsPerDay.set(set.day, (setsPerDay.get(set.day) ?? 0) + 1);
+    const entry = byDay.get(set.day) ?? { sets: 0, topLevel: 0, skills: [] };
+    entry.sets += 1;
+    entry.topLevel = Math.max(entry.topLevel, set.level);
+    if (!entry.skills.includes(set.skillId)) entry.skills.push(set.skillId);
+    byDay.set(set.day, entry);
   }
   return Array.from({ length: count }, (_, week) =>
     Array.from({ length: 7 }, (_, weekday) => {
       const day = addDays(firstDay, week * 7 + weekday);
-      return { day, sets: setsPerDay.get(day) ?? 0, future: day > today, today: day === today };
+      const entry = byDay.get(day) ?? { sets: 0, topLevel: 0, skills: [] };
+      return { day, ...entry, future: day > today, today: day === today };
     })
   );
 }

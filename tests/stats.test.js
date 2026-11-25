@@ -29,7 +29,7 @@ test("weeks start on Monday", () => {
 test("weekly totals add up reps, holds, sets and days", () => {
   const weeks = weeklyTotals(progress, WEDNESDAY, 3);
   assert.deepEqual(weeks.map((w) => w.weekStart), ["2026-11-09", "2026-11-16", "2026-11-23"]);
-  assert.deepEqual(weeks[2], { weekStart: "2026-11-23", sets: 3, reps: 10, holdSeconds: 20, activeDays: 2 });
+  assert.deepEqual(weeks[2], { weekStart: "2026-11-23", sets: 3, reps: 10, holdSeconds: 20, setsByLevel: { 1: 3 }, activeDays: 2 });
   assert.equal(weeks[1].reps, 5);
   assert.equal(weeks[0].sets, 0);
 });
@@ -42,6 +42,9 @@ test("the calendar marks training days, today and the future", () => {
   assert.equal(calendar[1][2].today, true);
   assert.equal(calendar[1][3].future, true);
   assert.equal(calendar[0][0].sets, 1);
+  assert.equal(calendar[1][0].topLevel, 1);
+  assert.deepEqual(calendar[1][0].skills, ["push-up"]);
+  assert.equal(calendar[1][3].topLevel, 0, "no training, no level");
 });
 
 test("skill curve, bests and overview", () => {

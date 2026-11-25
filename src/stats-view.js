@@ -1,7 +1,7 @@
-// Draws the Stats tab: headline tiles, reps per week, training calendar,
+// Draws the Stats tab: headline tiles, sets per week, training calendar,
 // progress curve per skill and personal bests. Charts are plain SVG.
 // Tapping a bar, day or point shows its exact value in the caption below.
-import { getSkill } from "./skills.js";
+import { LEVELS, getSkill } from "./skills.js";
 import { formatClock } from "./workout.js";
 import { overview, personalBests, skillSeries, trainingCalendar, weeklyTotals } from "./stats.js";
 
@@ -70,40 +70,74 @@ function renderTiles(container, numbers) {
   );
 }
 
-// ---------- Reps per week (bars) ----------
+// ---------- Sets per week (bars stacked by level) ----------
+// Sets, not reps: hold skills have no reps, so a week of handstands would
+// look empty. Each bar is split by the level of the skills, in level colors.
 
 const W = 320;
+const SURFACE = "#181b22";
+const levelColor = (level) => LEVELS.find((l) => l.level === level)?.color ?? ACCENT;
+
+// Small row of level colors under a chart, only for the levels that appear.
+function levelLegend(levels) {
+  const legend = document.createElement("div");
+  legend.className = "level-legend";
+  for (const level of [...levels].sort((a, b) => a - b)) {
+    const item = document.createElement("span");
+    item.className = "level-legend-item";
+    const swatch = document.createElement("span");
+    swatch.className = "level-swatch";
+    swatch.style.background = levelColor(level);
+    item.append(swatch, `Level ${level}`);
+    legend.append(item);
+  }
+  return legend;
+}
 
 function renderWeeklyChart(container, caption, weeks) {
   const H = 150;
   const top = 12;
   const bottom = 24;
   const plotH = H - top - bottom;
-  const max = Math.max(1, ...weeks.map((week) => week.reps));
+  const max = Math.max(1, ...weeks.map((week) => week.sets));
   const slot = W / weeks.length;
   const barW = Math.min(26, slot - 10);
+  const levels = new Set();
 
-  const chart = svg("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Reps per week, last 8 weeks" });
+  const chart = svg("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Sets per week by level, last 8 weeks" });
   chart.append(svg("line", { x1: 0, x2: W, y1: top + plotH, y2: top + plotH, stroke: GRID, "stroke-width": 1 }));
 
   const hits = weeks.map((week, i) => {
     const x = i * slot + (slot - barW) / 2;
-    const h = week.reps === 0 ? 0 : Math.max(4, (week.reps / max) * plotH);
     const group = svg("g", { class: "chart-hit" });
     // Bigger invisible hit area than the bar itself.
     group.append(svg("rect", { x: i * slot, y: 0, width: slot, height: H, fill: "transparent" }));
-    if (h > 0) {
-      // Rounded top, flat on the baseline.
-      const y = top + plotH - h;
-      const r = Math.min(4, h);
+
+    // Segments from the lowest level at the bottom to the highest on top.
+    const parts = Object.entries(week.setsByLevel)
+      .map(([level, sets]) => [Number(level), sets])
+      .sort((a, b) => a[0] - b[0]);
+    let y = top + plotH;
+    parts.forEach(([level, sets], index) => {
+      levels.add(level);
+      const h = Math.max(3, (sets / max) * plotH);
+      const isTop = index === parts.length - 1;
+      const y0 = y - h;
+      const r = isTop ? Math.min(4, h) : 0;
       group.append(
         svg("path", {
           class: "bar",
-          d: `M${x},${top + plotH} V${y + r} Q${x},${y} ${x + r},${y} H${x + barW - r} Q${x + barW},${y} ${x + barW},${y + r} V${top + plotH} Z`,
-          fill: ACCENT,
+          d: `M${x},${y} V${y0 + r} Q${x},${y0} ${x + r},${y0} H${x + barW - r} Q${x + barW},${y0} ${x + barW},${y0 + r} V${y} Z`,
+          fill: levelColor(level),
         })
       );
-    }
+      // 2px surface gap between stacked segments.
+      if (!isTop) {
+        group.append(svg("line", { x1: x, x2: x + barW, y1: y0, y2: y0, stroke: SURFACE, "stroke-width": 2 }));
+      }
+      y = y0;
+    });
+
     const label = svg("text", { x: x + barW / 2, y: H - 6, "text-anchor": "middle", class: "chart-axis" });
     label.textContent = i === weeks.length - 1 ? "Now" : dayLabel(week.weekStart);
     // Only every other date label fits on a phone.
@@ -112,28 +146,26 @@ function renderWeeklyChart(container, caption, weeks) {
     return group;
   });
 
-  container.replaceChildren(chart);
+  container.replaceChildren(chart, ...(levels.size > 0 ? [levelLegend(levels)] : []));
   makeSelectable(
     hits,
     caption,
     (i) => {
       const week = weeks[i];
       const when = i === weeks.length - 1 ? "This week" : `Week of ${dayLabel(week.weekStart)}`;
+      const reps = week.reps > 0 ? ` · ${plural(week.reps, "rep")}` : "";
       const holds = week.holdSeconds > 0 ? ` · ${formatClock(week.holdSeconds)} holds` : "";
-      return `${when}: ${plural(week.reps, "rep")}${holds} · ${plural(week.sets, "set")}`;
+      return `${when}: ${plural(week.sets, "set")}${reps}${holds}`;
     },
     weeks.length - 1
   );
 }
 
 // ---------- Training calendar ----------
+// Each day shows its date. Training days are filled with the color of the
+// highest level trained that day, so you can see when you moved up a level.
 
-function level(sets) {
-  if (sets === 0) return 0;
-  if (sets <= 2) return 1;
-  if (sets <= 5) return 2;
-  return 3;
-}
+const dayNumber = (day) => String(Number(day.slice(8, 10)));
 
 function renderCalendar(container, caption, calendar) {
   const grid = document.createElement("div");
@@ -145,25 +177,36 @@ function renderCalendar(container, caption, calendar) {
     grid.append(head);
   }
   const days = calendar.flat();
+  const levels = new Set();
   const cells = days.map((day) => {
     const cell = document.createElement("span");
-    cell.className = `calendar-day level-${level(day.sets)}`;
+    cell.className = "calendar-day";
+    const trained = day.sets > 0;
+    cell.classList.toggle("is-trained", trained);
     cell.classList.toggle("is-today", day.today);
     cell.classList.toggle("is-future", day.future);
+    if (trained) {
+      levels.add(day.topLevel);
+      cell.style.setProperty("--day-color", levelColor(day.topLevel));
+    }
+    // Month name on the 1st, so the grid is easy to place in time.
+    cell.textContent = day.day.endsWith("-01") ? dayLabel(day.day).replace(" ", "\n") : dayNumber(day.day);
     cell.setAttribute("aria-label", `${dayLabel(day.day, longDay)}: ${plural(day.sets, "set")}`);
     grid.append(cell);
     return cell;
   });
-  container.replaceChildren(grid);
+  container.replaceChildren(grid, ...(levels.size > 0 ? [levelLegend(levels)] : []));
   const todayIndex = days.findIndex((day) => day.today);
   makeSelectable(
     cells,
     caption,
     (i) => {
       const day = days[i];
-      if (day.future) return `${dayLabel(day.day, longDay)}: still ahead`;
-      if (day.today && day.sets === 0) return "Today: no sets yet";
-      return `${dayLabel(day.day, longDay)}: ${day.sets === 0 ? "rest day" : plural(day.sets, "set")}`;
+      const when = day.today ? "Today" : dayLabel(day.day, longDay);
+      if (day.future) return `${when}: still ahead`;
+      if (day.sets === 0) return day.today ? "Today: no sets yet" : `${when}: rest day`;
+      const skills = day.skills.map((id) => getSkill(id)?.name ?? id).join(", ");
+      return `${when}: ${plural(day.sets, "set")} · ${skills}`;
     },
     todayIndex
   );
