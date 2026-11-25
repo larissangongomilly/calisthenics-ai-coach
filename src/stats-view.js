@@ -282,7 +282,7 @@ function renderSkillChart(container, caption, skill, points) {
     (i) => {
       const p = shown[i];
       const amount = skill.measure === "hold" ? formatClock(p.value) : plural(p.value, "rep");
-      return `${setDate.format(new Date(p.date))}: ${amount} · ${p.score}% form · goal ${skill.goal} ${unit}`;
+      return `${setDate.format(new Date(p.date))}: ${amount} · ${p.score}% form · goal ${skill.measure === "hold" ? formatClock(skill.goal) : `${skill.goal} ${unit}`}`;
     },
     shown.length - 1
   );
