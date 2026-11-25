@@ -4,7 +4,7 @@ An AI coach that watches your calisthenics form through the camera and gives you
 
 It runs in the browser. There is nothing to install, and **no images or video leave your device**.
 
-**Live demo:** [calisthenics-ai-coach.pages.dev](https://calisthenics-ai-coach.pages.dev) (best on a phone; allow camera access to train)
+**Live demo:** [calisthenics-ai-coach.pages.dev](https://calisthenics-ai-coach.pages.dev) (best on a phone; allow camera access to train). To look around with sample data, open [calisthenics-ai-coach.pages.dev/?demo](https://calisthenics-ai-coach.pages.dev/?demo) or tap "Try it with sample data" on the welcome screen.
 
 <p>
   <img src="docs/screenshots/welcome.jpg" alt="Welcome screen asking for your name" width="200" />
@@ -48,6 +48,7 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Coach warning** for high-risk skills (hefesto, iron cross, one-arm muscle-up, maltese, victorian)
 - **Progress and weekly streak**, saved on your device and optionally synced with an account
 - **Pause and resume** (the camera turns fully off while paused)
+- **Demo mode** with a sample user (open the app with `?demo`): everything stays in memory, so your own progress is never touched and nothing syncs to an account
 
 ## Status
 | Part | State |
@@ -124,7 +125,15 @@ This app gives **general guidance only. It does not replace a coach, trainer or 
 Warm up first, use a stable surface or bar, and stop right away if you feel pain, dizziness or lose control. Advanced skills on rings, one-arm skills and the hefesto need proper equipment, step-by-step assistance and a qualified coach.
 
 ## About
-Built with AI assistance (Claude). Product idea, design decisions and testing by Larissa.
+This is my own project. **The idea and every product decision come from me:**
+
+- **Concept:** a coach that gives live feedback during the exercise, not after it, and a skill path from the first push-up to elite skills
+- **Training content:** the 7 levels, the 51 skills, their order, goals and safety warnings
+- **Design:** the app layout, the outline figures, the colors (dark and light mode) and the logo
+- **Privacy:** pose detection only on the device, no video upload, body data never leaves the phone, an optional account in the EU with in-app deletion
+- **Product details:** settings and defaults, stats, badges, the demo mode, and what the coach says and when
+
+I wrote the requirements, reviewed every change, tested the app on my own devices and decided what goes in. The code was written with AI assistance (Claude).
 
 ## License
 Copyright © 2026 Larissa. **All rights reserved.**

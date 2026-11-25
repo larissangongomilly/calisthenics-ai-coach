@@ -28,6 +28,10 @@
     </script>
   </head>
   <body>
+    <div id="demo-banner" class="demo-banner" role="status" hidden>
+      <span><strong>Demo</strong> with sample data. Nothing is saved.</span>
+      <a href="./" class="demo-exit">Exit demo</a>
+    </div>
     <div class="app">
       <!-- Welcome: shown once, asks for the user's name -->
       <section id="welcome-screen" class="screen welcome" hidden>
@@ -62,6 +66,7 @@
           />
           <button type="submit" class="button button-primary button-block">Let's go</button>
         </form>
+        <a href="?demo" class="button button-secondary button-block welcome-demo">Try it with sample data</a>
         <p class="welcome-note">Your name and progress stay on this device.</p>
       </section>
 

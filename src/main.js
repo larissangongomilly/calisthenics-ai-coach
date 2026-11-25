@@ -1,3 +1,5 @@
+// Must stay the first import: in demo mode it swaps the storage before any module reads it.
+import { DEMO } from "./demo-boot.js";
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { buildPose } from "./pose.js";
 import { getExercise } from "./exercises.js";
@@ -1440,4 +1442,10 @@ function applySyncedData(merged) {
   if (!screens.settings.hidden) renderSettings();
 }
 
-initAccount({ readLocal: readLocalData, writeLocal: applySyncedData, confirm: confirmHint });
+// The demo never signs in, so sample data can never reach a real account.
+if (DEMO) {
+  document.body.classList.add("is-demo");
+  $("#demo-banner").hidden = false;
+} else {
+  initAccount({ readLocal: readLocalData, writeLocal: applySyncedData, confirm: confirmHint });
+}
