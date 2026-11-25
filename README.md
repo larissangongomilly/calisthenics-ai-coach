@@ -4,13 +4,24 @@ An AI coach that watches your calisthenics form through the camera and gives you
 
 It runs in the browser. There is nothing to install, and **no images or video leave your device**.
 
+**Live demo:** [calisthenics-ai-coach.pages.dev](https://calisthenics-ai-coach.pages.dev) (best on a phone; allow camera access to train)
+
 <p>
-  <img src="docs/screenshots/welcome.jpg" alt="Welcome screen asking for your name" width="240" />
+  <img src="docs/screenshots/welcome.jpg" alt="Welcome screen asking for your name" width="200" />
   &nbsp;
-  <img src="docs/screenshots/home.jpg" alt="Home tab with the skill path: levels and skill nodes from top to bottom" width="240" />
+  <img src="docs/screenshots/home.jpg" alt="Home tab with the skill path: completed skills, the next skill marked START and locked skills below" width="200" />
   &nbsp;
-  <img src="docs/screenshots/skills.jpg" alt="Skills tab with search, level filter and all skills" width="240" />
+  <img src="docs/screenshots/skills.jpg" alt="Skills tab with search, level filter and all skills" width="200" />
 </p>
+<p>
+  <img src="docs/screenshots/stats.jpg" alt="Stats tab with sets per week split by level and a training calendar" width="200" />
+  &nbsp;
+  <img src="docs/screenshots/profile.jpg" alt="Profile with level, overview numbers, goal skill and badges" width="200" />
+  &nbsp;
+  <img src="docs/screenshots/light.jpg" alt="Home tab in light mode" width="200" />
+</p>
+
+<sub>Screenshots show generated sample data for a user called Alex after 11 weeks of training.</sub>
 
 ## Features
 - **Mobile app layout:** welcome screen with your name, a **Home** tab with your path, a **Skills** tab for free training and a **Profile** tab, switched with a bottom tab bar
@@ -32,10 +43,10 @@ It runs in the browser. There is nothing to install, and **no images or video le
 - **Pose detection in the browser** with MediaPipe: the camera image is analyzed on your device and never uploaded
 - **Rep counting and hold timer**, including partial reps that do not reach the full range
 - **Form score and summary** after each set, with the most common errors
-- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross, shown as a road of outline figures in each pose (each skill gets its own color once you reach it)
+- **Skill path** with 7 levels and 51 skills, from the classic push-up to the iron cross, shown as a road of outline figures in each pose, colored in steps of lime by level
 - **Free choice of skills** in the Skills tab (search and level filter), with a safety hint when a skill belongs to a level you have not unlocked yet
 - **Coach warning** for high-risk skills (hefesto, iron cross, one-arm muscle-up, maltese, victorian)
-- **Progress and weekly streak**, saved in your browser
+- **Progress and weekly streak**, saved on your device and optionally synced with an account
 - **Pause and resume** (the camera turns fully off while paused)
 
 ## Status
@@ -43,7 +54,9 @@ It runs in the browser. There is nothing to install, and **no images or video le
 |------|-------|
 | Push-up | Tested rules (side view): plank check, knee push-ups ignored, hip sag and high hips, depth |
 | All other 50 skills | **Beta**: rules follow the [technique guide](docs/technique-guide.md) but are **not tested with real people yet** |
-| Skill path, progress, streak | Working, stored locally |
+| Skill path, progress, streak, stats, badges | Working, stored on the device |
+| Optional account and sync | Built (Supabase, EU); needs a Supabase project to run |
+| Native App Store and Play Store app | Planned (Capacitor) |
 
 ## How to run
 You need [Node.js](https://nodejs.org/) 20 or newer.
@@ -59,7 +72,7 @@ Open the address that Vite shows (usually `http://localhost:5173`) and allow cam
 
 **Test on your phone (same Wi-Fi):** run `npm run dev:phone` and open the `Network` address it prints (for example `https://192.168.0.10:5173`) on your phone. The dev server uses a self-signed certificate, so the browser shows a security warning once; accept it to continue. HTTPS is needed because browsers only allow the camera on secure pages.
 
-**Tests:** `npm test` runs the automated tests (Node's built-in test runner, no extra packages). They cover progress and streak rules, level unlocking, the camera rules with simulated poses, the guided setup and the figures.
+**Tests:** `npm test` runs the automated tests (Node's built-in test runner, no extra packages). They cover progress and streak rules, level unlocking, the camera rules with simulated poses, the guided setup, the figures, settings, stats, badges and the account sync (merging progress from several devices).
 
 **Accounts (optional):** without the two variables below the app runs fully offline and hides the account section.
 
@@ -67,11 +80,20 @@ Open the address that Vite shows (usually `http://localhost:5173`) and allow cam
 2. In Authentication → Emails, add `{{ .Token }}` to the "Magic Link" and "Confirm signup" templates, so the email contains the 6-digit code.
 3. Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project Settings → API). For the hosted version, add the same two variables in the Cloudflare Pages settings.
 
-**Production build:** `npm run build` creates the app in `dist/`. The test version is hosted on Cloudflare Pages (build command `npm run build`, output folder `dist`) behind Cloudflare Access, so only invited people can open it.
+**Production build:** `npm run build` creates the app in `dist/`. The live demo is hosted on Cloudflare Pages (build command `npm run build`, output folder `dist`) and deployed on every push to `main`.
 
 **App icon:** `node scripts/make-icon.mjs` writes the icon SVGs to `public/icons/`. The PNG sizes were made from them on macOS (`qlmanage -t -s 512`, then `sips -z`).
 
 **Tip:** Place the camera so your whole body is visible. Most skills need a side view; each skill card tells you how to film.
+
+## Tech stack
+- **Frontend:** Vite and plain JavaScript (ES modules), no framework; mobile-first CSS with dark and light themes built on CSS variables
+- **Pose detection:** [MediaPipe Pose Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker), running fully on the device
+- **Voice and device:** Web Speech API for the spoken coach, Screen Wake Lock, vibration
+- **Charts and figures:** hand-written SVG (no chart library)
+- **Account (optional):** [Supabase](https://supabase.com) in the EU: email code sign-in, Postgres with row level security, in-app account deletion
+- **Tests:** Node's built-in test runner, 71 tests
+- **Hosting:** Cloudflare Pages
 
 ## How it works
 1. **MediaPipe Pose Landmarker** finds 33 body points in every video frame.
